@@ -3,7 +3,7 @@
 
 /*
 The AtTiny85 have this pinout:
-        __ __
+         __ __
  RESET -|  U  |- VCC
    PB3 -|     |- PB2
    PB4 -|     |- PB1
