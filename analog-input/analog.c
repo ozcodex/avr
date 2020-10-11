@@ -3,9 +3,11 @@
 
 uint8_t getPressedButton(uint8_t byte);
 void putBit(uint8_t);
-void putHex(uint8_t byte);
-void putWord(uint8_t first, uint8_t last);
-void putByte(uint8_t byte);
+void putHex(uint8_t);
+uint8_t increment(uint8_t, uint8_t);
+uint8_t decrement(uint8_t, uint8_t);
+void putWord(uint8_t, uint8_t);
+void putByte(uint8_t);
 void cycleClock();
 void setup();
 
@@ -15,6 +17,7 @@ uint8_t hex[] = {0xFC,0x60,0xDA,0xF2,0x66,0xB6,0xBE,0xE0,0xFE,0xE6,0xEE,0x3E,0x9
 int main(void) {
   uint8_t i=0,j=0;
   uint8_t byte=0x00;
+  uint8_t read=0;
   uint8_t button;
   setup();
 
@@ -22,9 +25,32 @@ int main(void) {
     // Read Analog Data
     // 0100 0000 -> 0x40 ADSC Bit (start conversion)
     ADCSRA |= 0x40;
-    byte = ADCH;
-    button = getPressedButton(byte);
-    putHex(button);
+    button = getPressedButton(ADCH);
+    if (button == 0) read = 1;
+    if (read == 1 && button != 0){
+      read=0;
+      switch(button){
+        case 1:
+          byte = increment(byte,0x10);
+          break;
+        case 2:
+          byte = decrement(byte,0x10);
+          break;
+        case 3:
+          byte = increment(byte,0x01);
+          break;
+        case 4:
+          byte = decrement(byte,0x01);
+          break;
+        case 5:
+          //do something with byte
+          break;
+        case 6:
+          byte = 0x00;
+          break;
+      }
+    }
+    putHex(byte);
     _delay_ms(100);
   }
   return 0;
@@ -58,6 +84,18 @@ else if (byte < 0xB0) return 4;
 else if (byte < 0xD0) return 5;
 else if (byte < 0xF0) return 6;
 else return 0; //no button pressed
+}
+
+uint8_t increment(uint8_t byte, uint8_t value){
+  if( (0xFF - byte) > value)
+    return byte + value;
+  else return 0xFF;
+}
+
+uint8_t decrement(uint8_t byte, uint8_t value){
+  if( byte > value )
+    return byte - value;
+  else return 0x00;
 }
 
 void putHex(uint8_t byte){
