@@ -12,10 +12,10 @@ compile:
 	avr-gcc -DF_CPU=$(CPUCLOCK) -mmcu=$(CHIP) -o $(FILE).elf $(FILE).o
 	avr-objcopy -O ihex $(FILE).elf $(FILE).hex
 
-clean:
-	rm $(FILE).o
-	rm $(FILE).elf
-	rm $(FILE).hex
+ clean:
+	rm -f $(FILE).o
+	rm -f $(FILE).elf
+	rm -f $(FILE).hex
 
 upload:
 	sudo avrdude -c $(PROGRAMMER) -p $(CHIP) -P$(PORT) -b $(BAUDS) -U flash:w:$(FILE).hex:i
