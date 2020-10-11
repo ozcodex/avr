@@ -5,6 +5,8 @@ BAUDS=19200
 PROGRAMMER=stk500v1
 FILE=shift
 
+all: clean compile upload
+
 compile:
 	avr-gcc -Os -DF_CPU=$(CPUCLOCK) -mmcu=$(CHIP) -c $(FILE).c
 	avr-gcc -DF_CPU=$(CPUCLOCK) -mmcu=$(CHIP) -o $(FILE).elf $(FILE).o

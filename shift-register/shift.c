@@ -9,17 +9,19 @@ void setup();
 
 int main(void) {
   int i=0,j=0;
+  uint8_t flag=0;
   uint8_t hex[] = {0xFC,0x60,0xDA,0xF2,0x66,0xB6,0xBE,0xE0,0xFE,0xE6,0xEE,0x3E,0x9C,0x7A,0x9E,0x8E};
+  uint8_t load[] = {0x80,0x40,0x20,0x10,0x10,0x08,0x04,0x80};
   setup();
 
-    while( j < 16 ){
-      i=0;
-      while( i < 16 ){
-        putWord(hex[j],hex[i]);
-        _delay_ms(200);
+    while( 1 ){
+      i = 0;
+      while( i < 8 ){
+        if( (i & 0x4) >> 2 ) putWord(load[i],0x00);
+        else putWord(0x00,load[i]);
+        _delay_ms(100);
         i++;
       }
-      j++;
     }
     return 0;
 }
