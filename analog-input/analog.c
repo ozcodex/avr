@@ -1,6 +1,7 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
+uint8_t getPressedButton(uint8_t byte);
 void putBit(uint8_t);
 void putHex(uint8_t byte);
 void putWord(uint8_t first, uint8_t last);
@@ -12,8 +13,9 @@ void setup();
 uint8_t hex[] = {0xFC,0x60,0xDA,0xF2,0x66,0xB6,0xBE,0xE0,0xFE,0xE6,0xEE,0x3E,0x9C,0x7A,0x9E,0x8E};
 
 int main(void) {
-  int i=0,j=0;
+  uint8_t i=0,j=0;
   uint8_t byte=0x00;
+  uint8_t button;
   setup();
 
   while( 1 ){
@@ -21,7 +23,8 @@ int main(void) {
     // 0100 0000 -> 0x40 ADSC Bit (start conversion)
     ADCSRA |= 0x40;
     byte = ADCH;
-    putHex(byte);
+    button = getPressedButton(byte);
+    putHex(button);
     _delay_ms(100);
   }
   return 0;
@@ -47,6 +50,15 @@ void setup() {
   ADCSRA |= 0x86;
 }
 
+uint8_t getPressedButton(uint8_t byte){
+if (byte < 0x30) return 1;
+else if (byte < 0x60) return 2;
+else if (byte < 0x80) return 3;
+else if (byte < 0xB0) return 4;
+else if (byte < 0xD0) return 5;
+else if (byte < 0xF0) return 6;
+else return 0; //no button pressed
+}
 
 void putHex(uint8_t byte){
   putWord( hex[ ((byte & 0xF0) >> 4) ], hex[ (byte & 0x0F) ] );
