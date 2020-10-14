@@ -3,16 +3,17 @@ CHIP=attiny85
 PORT=/dev/ttyACM0
 BAUDS=19200
 PROGRAMMER=stk500v1
+PROYECT=blink
 
-compile: blink.c
-	avr-gcc -Os -DF_CPU=$(CPUCLOCK) -mmcu=$(CHIP) -c blink.c
-	avr-gcc -DF_CPU=$(CPUCLOCK) -mmcu=$(CHIP) -o blink.elf blink.o
-	avr-objcopy -O ihex blink.elf blink.hex
+compile: $(PROYECT).c
+	avr-gcc -Os -DF_CPU=$(CPUCLOCK) -mmcu=$(CHIP) -c $(PROYECT).c
+	avr-gcc -DF_CPU=$(CPUCLOCK) -mmcu=$(CHIP) -o $(PROYECT).elf $(PROYECT).o
+	avr-objcopy -O ihex $(PROYECT).elf $(PROYECT).hex
 
 clean:
-	rm blink.o
-	rm blink.elf
-	rm blink.hex
+	rm $(PROYECT).o
+	rm $(PROYECT).elf
+	rm $(PROYECT).hex
 
-upload: blink.hex
-	sudo avrdude -c $(PROGRAMMER) -p $(CHIP) -P$(PORT) -b $(BAUDS) -U flash:w:blink.hex
+upload: $(PROYECT).hex
+	sudo avrdude -c $(PROGRAMMER) -p $(CHIP) -P$(PORT) -b $(BAUDS) -U flash:w:$(PROYECT).hex
