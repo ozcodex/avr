@@ -25,9 +25,31 @@ The AtTiny85 have this pinout:
  *  - CLK: PB1
  * */
 
+uint8_t S[16] = {0x3f,0x06,0x5b,0x4f,
+                 0x66,0x6d,0x7d,0x07,
+                 0x7f,0x6f,0x77,0x7c,
+                 0x39,0x5e,0x79,0x71};
+
+void render(uint8_t aa, uint8_t bb, uint8_t p){
+  // aa,bb = [0x00 .. 0xff]   p=[0,1]
+  //render an hex duple in the screen in the format:
+  //  aa:bb
+  //where aa is the first number, bb is the second number
+  //and p can be 1 to show the dots and 0 to not showing the dots
+   
+  
+  //first segment  
+  TM1637_display_segments(0,S[aa>>4]);
+  TM1637_display_segments(1,S[aa&0xf]);
+  TM1637_display_segments(2,S[bb>>4]);
+  TM1637_display_segments(3,S[bb&0xf]);
+  
+  
+}
+
 int main (void){
-  uint8_t x,y,z,r = 0;
-  uint8_t pr = 0; //previous r (read)
+  uint8_t x,y,z,r,i,j = 0;
+  uint8_t pr = 7; //previous r (read)
 
   // Setup display: enable (1: on, 0: off), brightness (0..7)
   TM1637_init(1,1);
@@ -61,8 +83,13 @@ int main (void){
     //0x01 = yz buttons pressed
     
     if (pr != r){  //if previous read is different
-      TM1637_display_digit(0,r);
       pr = r;
+    }
+    for(i=0;i<=0xff;i++){
+      for(j=0;j<=0xff;j++){
+        render(i,j,0);
+        _delay_ms(100);
+      }
     }
   }
 }
