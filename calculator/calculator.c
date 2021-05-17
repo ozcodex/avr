@@ -20,6 +20,9 @@ The AtTiny85 have this pinout:
  * I will be adding some utities te this program. initially it has a hello 
  * world that counts the number op pushes on each of the buttons.
  *
+ * Connection pins for display are:
+ *  - DIO: PB0
+ *  - CLK: PB1
  * */
 
 int main (void){

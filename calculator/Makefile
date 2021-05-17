@@ -3,17 +3,18 @@ CHIP=attiny85
 PORT=/dev/ttyACM0
 BAUDS=19200
 PROGRAMMER=stk500v1
-PROYECT=calculator
+TARGET=calculator
+SOURCES=calculator.c lib/tm1637.c
 
-compile: $(PROYECT).c
-	avr-gcc -Os -DF_CPU=$(CPUCLOCK) -mmcu=$(CHIP) -c $(PROYECT).c
-	avr-gcc -DF_CPU=$(CPUCLOCK) -mmcu=$(CHIP) -o $(PROYECT).elf $(PROYECT).o
-	avr-objcopy -O ihex $(PROYECT).elf $(PROYECT).hex
+compile: $(SOURCES)
+	avr-gcc -Os -DF_CPU=$(CPUCLOCK) -mmcu=$(CHIP) -I. -o $(TARGET).o $(SOURCES)
+	avr-ld -o $(TARGET).elf $(TARGET).o
+	avr-objcopy -O ihex $(TARGET).elf $(TARGET).hex
 
 clean:
-	rm $(PROYECT).o
-	rm $(PROYECT).elf
-	rm $(PROYECT).hex
+	rm $(TARGET).o
+	rm $(TARGET).elf
+	rm $(TARGET).hex
 
-upload: $(PROYECT).hex
-	sudo avrdude -c $(PROGRAMMER) -p $(CHIP) -P$(PORT) -b $(BAUDS) -U flash:w:$(PROYECT).hex
+upload: $(TARGET).hex
+	sudo avrdude -c $(PROGRAMMER) -p $(CHIP) -P$(PORT) -b $(BAUDS) -U flash:w:$(TARGET).hex
