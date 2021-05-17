@@ -1,5 +1,6 @@
 #include <avr/io.h>
 #include <util/delay.h>
+#include "lib/tm1637.h"
 
 /*
 The AtTiny85 have this pinout:
@@ -22,4 +23,18 @@ The AtTiny85 have this pinout:
  * */
 
 int main (void){
+  uint8_t n, k = 0;
+
+  // Setup: enable (1: on, 0: off), brightness (0..7)
+  TM1637_init(1,5);
+
+  while(1){
+    for( n=0; n< TM1637_POSITION_MAX; ++n)
+      TM1637_display_digit(n, (k + n)% 0x10);
+    TM1637_display_colon(1);
+    _delay_ms(200);
+    TM1637_display_colon(0);
+    _delay_ms(200);
+    k++;
+  }
 }
