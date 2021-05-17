@@ -51,25 +51,13 @@ void render(uint8_t aa, uint8_t bb, uint8_t p){
   TM1637_display_segments(3,S[bb&0xf]);
 }
 
-int main (void){
-  uint8_t x,y,z,r,i,j = 0;
-  uint8_t op = 0xf;
-  uint8_t pr = 7; //previous r (read)
+uint8_t read_input(uint8_t limit){
+  //r:read  pr:previous_r
+  uint8_t r,pr = 0x7;
+  //op:selected_option
+  uint8_t op = 0x00;
 
-  // Setup display: enable (1: on, 0: off), brightness (0..7)
-  TM1637_init(1,1);
-
-  //Setup Input buttons
-  //unwrite ports to be sure that they are zeroes
-  //this sets the port as inputs 
-  DDRB &= ~(1 << DDB2);
-  DDRB &= ~(1 << DDB3);
-  DDRB &= ~(1 << DDB4);
-  //set the internal pull-up resistors
-  PORTB |= (1 << PORTB2);
-  PORTB |= (1 << PORTB3);
-  PORTB |= (1 << PORTB4);
-
+  //infinite loop until read a value
   while(1){
     //get the pin values isolated
     // B00011100 = 0x1C
@@ -91,18 +79,61 @@ int main (void){
       pr = r;
       switch (r){
         case 0x6: //x button
-          if(op<=0) op=0xf;
+          if(op<=0) op=limit;
           else op--;
           break;
         case 0x3: //z button
-          if(op>=0xf) op=0x0;
+          if(op>=limit) op=0x0;
           else op++;
           break;
         case 0x5: //y button
-          render(op,0xee,1);
-          _delay_ms(500);
+          return op;
       }
-      render(0,op,0);
+    }
+    render(0x00,op,1);
+  }
+}
+
+int main (void){
+  uint8_t i,j = 0;
+  uint8_t op = 0x0;
+
+  // Setup display: enable (1: on, 0: off), brightness (0..7)
+  TM1637_init(1,1);
+
+  //Setup Input buttons
+  //unwrite ports to be sure that they are zeroes
+  //this sets the port as inputs 
+  DDRB &= ~(1 << DDB2);
+  DDRB &= ~(1 << DDB3);
+  DDRB &= ~(1 << DDB4);
+  //set the internal pull-up resistors
+  PORTB |= (1 << PORTB2);
+  PORTB |= (1 << PORTB3);
+  PORTB |= (1 << PORTB4);
+
+  while(1){
+    //read menu option
+    op = read_input(0xf);
+
+    //menu options
+    switch(op){
+      case 1:
+        render(0x0a,0xdd,0);
+        _delay_ms(500);
+        i = read_input(0xf);
+        render(0x00,0x00,0);
+        _delay_ms(500);
+        j = read_input(0xf);
+        render(0x00,0x00,0);
+        _delay_ms(500);
+        render(0xad,i+j,1);
+        _delay_ms(1000);
+        break;
+      default:
+        render(0xee,0xee,0);
+        _delay_ms(500);
+        break;
     }
   }
 }
