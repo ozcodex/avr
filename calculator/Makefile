@@ -4,7 +4,7 @@ PORT=/dev/ttyACM0
 BAUDS=19200
 PROGRAMMER=stk500v1
 TARGET=calculator
-SOURCES=calculator.c lib/tm1637.c
+SOURCES=calculator.c lib/tm1637.c lib/random.c
 
 all: clean compile upload
 
