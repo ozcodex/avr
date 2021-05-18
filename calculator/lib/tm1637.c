@@ -36,20 +36,6 @@ static void TM1637_stop(void);
 static uint8_t TM1637_write_byte(uint8_t value);
 
 static uint8_t _config = TM1637_SET_DISPLAY_ON | TM1637_BRIGHTNESS_MAX;
-static uint8_t _segments = 0xff;
-PROGMEM const uint8_t _digit2segments[] =
-{
-	0x3F, // 0
-	0x06, // 1
-	0x5B, // 2
-	0x4F, // 3
-	0x66, // 4
-	0x6D, // 5
-	0x7D, // 6
-	0x07, // 7
-	0x7F, // 8
-	0x6F  // 9
-};
 
 void
 TM1637_init(const uint8_t enable, const uint8_t brightness)
@@ -84,31 +70,6 @@ TM1637_display_segments(const uint8_t position, const uint8_t segments)
 	TM1637_write_byte(TM1637_CMD_SET_ADDR | (position & (TM1637_POSITION_MAX - 1)));
 	TM1637_write_byte(segments);
 	TM1637_stop();
-}
-
-void
-TM1637_display_digit(const uint8_t position, const uint8_t digit)
-{
-	uint8_t segments = (digit < 10 ? pgm_read_byte_near((uint8_t *)&_digit2segments + digit) : 0x00);
-
-	if (position == 0x01) {
-		segments = segments | (_segments & 0x80);
-		_segments = segments;
-	}
-
-	TM1637_display_segments(position, segments);
-}
-
-void
-TM1637_display_colon(const uint8_t value)
-{
-
-	if (value) {
-		_segments |= 0x80;
-	} else {
-		_segments &= ~0x80;
-	}
-	TM1637_display_segments(0x01, _segments);
 }
 
 void

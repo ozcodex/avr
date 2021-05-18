@@ -3,6 +3,7 @@
 #include <avr/sleep.h>
 #include <avr/eeprom.h>
 #include "lib/tm1637.h"
+#include "lib/chars.h"
 #include "lib/random.h"
 
 /*
@@ -30,15 +31,13 @@ The AtTiny85 have this pinout:
  *  The other ones are buttons PB2, PB3, PB4
  * */
 
-//This are the displayable simbols, initially the hex numbers 0..f
-uint8_t Sym[32] = {0x3f,0x06,0x5b,0x4f,  //0,1,2,3
-                   0x66,0x6d,0x7d,0x07,  //4,5,6,7
-                   0x7f,0x6f,0x77,0x7c,  //8,9,A,b
-                   0x39,0x5e,0x79,0x71,  //C,d,E,F
-                   0x00,0x73,0x50,0x5c,  // ,P,r,o
-                   0x30,0x40,0x54,0x3d,  //i,-,n,G
-                   0x78,0x38,0x6e,0x00,  //t,L,Y
-                   0x00,0x00,0x00,0x00}; //
+//This are the displayable numbers including hex [0..f]
+uint8_t number[16] = {
+  CHAR_0, CHAR_1, CHAR_2, CHAR_3,
+  CHAR_4, CHAR_5, CHAR_6, CHAR_7,
+  CHAR_8, CHAR_9, CHAR_A, CHAR_B,
+  CHAR_C, CHAR_D, CHAR_E, CHAR_F
+  };
 
 uint8_t byte_hi(uint8_t hex){
   return hex>>4;
@@ -48,13 +47,13 @@ uint8_t byte_lo(uint8_t hex){
 }
 
 void render(uint8_t a, uint8_t b,  uint8_t c,  uint8_t d, uint8_t p ){
-  TM1637_display_segments(0,Sym[a]);
+  TM1637_display_segments(0,a);
   if(p==0)
-    TM1637_display_segments(1,Sym[b]&~0x80);
+    TM1637_display_segments(1,b&~0x80);
   else
-    TM1637_display_segments(1,Sym[b]|0x80);
-  TM1637_display_segments(2,Sym[c]);
-  TM1637_display_segments(3,Sym[d]);
+    TM1637_display_segments(1,b|0x80);
+  TM1637_display_segments(2,c);
+  TM1637_display_segments(3,d);
 }
 
 uint8_t read_button(uint8_t mode){
@@ -117,7 +116,7 @@ uint8_t read_input(uint8_t limit,uint8_t a, uint8_t b){
           return op;
       }
     }
-    render(a,b,byte_hi(op),byte_lo(op),1);
+    render(number[a],number[b],number[byte_hi(op)],number[byte_lo(op)],1);
   }
 }
 
@@ -146,13 +145,13 @@ uint8_t get_move(){
     }
     switch(op){
       case 0:
-        render(0xf+3,0xf+4,0xf+6,0xf+6,1);
+        render(CHAR_R,CHAR_O,CHAR_DASH,CHAR_DASH,1);
         break;
       case 1:
-        render(0xf+2,0xa,0xf+6,0xf+6,1);
+        render(CHAR_P,CHAR_A,CHAR_DASH,CHAR_DASH,1);
         break;
       case 2:
-        render(0x5,0xf+5,0xf+6,0xf+6,1);
+        render(CHAR_5,CHAR_I,CHAR_DASH,CHAR_DASH,1);
         break;
     }
   }
@@ -183,25 +182,25 @@ uint8_t get_dice(){
     }
     switch(op){
       case 0:
-        render(0xf+1,0xf+1,0xd,0x4,0);
+        render(CHAR_SPC,CHAR_SPC,CHAR_D,CHAR_4,0);
         break;
       case 1:
-        render(0xf+1,0xf+1,0xd,0x6,0);
+        render(CHAR_SPC,CHAR_SPC,CHAR_D,CHAR_6,0);
         break;
       case 2:
-        render(0xf+1,0xf+1,0xd,0x8,0);
+        render(CHAR_SPC,CHAR_SPC,CHAR_D,CHAR_8,0);
         break;
       case 3:
-        render(0xf+1,0xd,0x1,0x0,0);
+        render(CHAR_SPC,CHAR_D,CHAR_1,CHAR_0,0);
         break;
       case 4:
-        render(0xf+1,0xd,0x1,0x2,0);
+        render(CHAR_SPC,CHAR_D,CHAR_1,CHAR_2,0);
         break;
       case 5:
-        render(0xf+1,0xd,0x2,0x0,0);
+        render(CHAR_SPC,CHAR_D,CHAR_2,CHAR_0,0);
         break;
       case 6:
-        render(0xd,0x1,0x0,0x0,0);
+        render(CHAR_D,CHAR_1,CHAR_0,CHAR_0,0);
         break;
     }
   }
@@ -214,55 +213,55 @@ void print_rps(uint8_t i, uint8_t j){
     // user choose rock
     if (j == 0){
       //system choose rock
-      render(0xf+3,0xf+4,0xf+3,0xf+4,1); //ro:ro
+      render(CHAR_R,CHAR_O,CHAR_R,CHAR_O,1); //ro:ro
       _delay_ms(2000);
-      render(0xf+1,0xf+9,0xf+5,0xe,0); //tie
+      render(CHAR_SPC,CHAR_T,CHAR_I,CHAR_E,0); //tie
     } else if (j == 1){
       //system choose paper
-      render(0xf+3,0xf+4,0xf+2,0xa,1); //ro:PA
+      render(CHAR_R,CHAR_O,CHAR_P,CHAR_A,1); //ro:PA
       _delay_ms(2000);
-      render(0xf+1,0xb,0xa,0xd,0); //bad
+      render(CHAR_SPC,CHAR_B,CHAR_A,CHAR_D,0); //bad
     } else if (j == 2){ 
       //system choose sissors
-      render(0xf+3,0xf+4,0x5,0xf+5,1); //ro:Si
+      render(CHAR_R,CHAR_O,CHAR_5,CHAR_I,1); //ro:Si
       _delay_ms(2000);
-      render(0xf+8,0xf+4,0xf+4,0xd,0); //good
+      render(CHAR_G,CHAR_O,CHAR_O,CHAR_D,0); //good
     }
   }else if(i == 1){
     //user choose paper
     if (j == 0){
       //system choose rock
-      render(0xf+2,0xa,0xf+3,0xf+4,1); //PA:ro
+      render(CHAR_P,CHAR_A,CHAR_R,CHAR_O,1); //PA:ro
       _delay_ms(2000);
-      render(0xf+8,0xf+4,0xf+4,0xd,0); //good
+      render(CHAR_G,CHAR_O,CHAR_O,CHAR_D,0); //good
     } else if (j == 1){
       //system choose paper
-      render(0xf+2,0xa,0xf+2,0xa,1); //PA:PA
+      render(CHAR_P,CHAR_A,CHAR_P,CHAR_A,1); //PA:PA
       _delay_ms(2000);
-      render(0xf+1,0xf+9,0xf+5,0xe,0); //tie
+      render(CHAR_SPC,CHAR_T,CHAR_I,CHAR_E,0); //tie
     } else if (j == 2){ 
       //system choose sissors
-      render(0xf+2,0xa,0x5,0xf+5,1); //PA:Si
+      render(CHAR_P,CHAR_A,CHAR_5,CHAR_I,1); //PA:Si
       _delay_ms(2000);
-      render(0xf+1,0xb,0xa,0xd,0); //bad
+      render(CHAR_SPC,CHAR_B,CHAR_A,CHAR_D,0); //bad
     }
   }else if(i == 2){
     //user choose sissors
     if (j == 0){
       //system choose rock
-      render(0x5,0xf+5,0xf+3,0xf+4,1); //Si:ro
+      render(CHAR_5,CHAR_I,CHAR_R,CHAR_O,1); //Si:ro
       _delay_ms(2000);
-      render(0xf+1,0xb,0xa,0xd,0); //bad
+      render(CHAR_SPC,CHAR_B,CHAR_A,CHAR_D,0); //bad
     } else if (j == 1){
       //system choose paper
-      render(0x5,0xf+5,0xf+2,0xa,1); //Si:PA
+      render(CHAR_5,CHAR_I,CHAR_P,CHAR_A,1); //Si:PA
       _delay_ms(2000);
-      render(0xf+8,0xf+4,0xf+4,0xd,0); //good
+      render(CHAR_G,CHAR_O,CHAR_O,CHAR_D,0); //good
     } else if (j == 2){
       //system choose sissors
-      render(0x5,0xf+5,0x5,0xf+5,1); //Si:Si
+      render(CHAR_5,CHAR_I,CHAR_5,CHAR_I,1); //Si:Si
       _delay_ms(2000);
-      render(0xf+1,0xf+9,0xf+5,0xe,0); //tie
+      render(CHAR_SPC,CHAR_T,CHAR_I,CHAR_E,0); //tie
     }
   }
   _delay_ms(2000);
@@ -296,38 +295,38 @@ int main (void){
   PORTB |= (1 << PORTB4);
 
   //read menu option
-  op = read_input(0xf,0xf+4,0xf+2); //limit f and "oP" as tag 
+  op = read_input(0xf,CHAR_O,CHAR_P); //limit f and "oP" as tag 
   while(1){
     x++;
     //menu options
     switch(op){
       case 0:
-        render(0xf+1,0xf+4,0xf,0xf,0);
+        render(CHAR_SPC,CHAR_O,CHAR_F,CHAR_F,0);
         _delay_ms(500);
         TM1637_init(0,0); //disabled and brightness 0
         sleep_mode();
         return 0;
       case 1:  //Addition
-        render(0xf+1,0xa,0xd,0xd,0);
+        render(CHAR_SPC,CHAR_A,CHAR_D,CHAR_D,0);
         _delay_ms(500);
-        i = read_input(0xf,0xf+7,1);
-        render(0xf+6,0xf+6,0xf+6,0xf+6,0);
+        i = read_input(0xf,CHAR_N,1);
+        render(CHAR_DASH,CHAR_DASH,CHAR_DASH,CHAR_DASH,0);
         _delay_ms(500);
-        j = read_input(0xf,0xf+7,2);
-        render(0xf+6,0xf+6,0xf+6,0xf+6,0);
+        j = read_input(0xf,CHAR_N,2);
+        render(CHAR_DASH,CHAR_DASH,CHAR_DASH,CHAR_DASH,0);
         _delay_ms(500);
-        render(0xf+3,0xe,byte_hi(i+j),byte_lo(i+j),1);
+        render(CHAR_R,0xe,byte_hi(i+j),byte_lo(i+j),1);
         _delay_ms(2000);
         break;
       case 2: //Rock Paper Sissor
-        render(0xf+2,0xf+0xa,0xa,0xf+0xb,0);
+        render(CHAR_P,CHAR_L,CHAR_A,CHAR_Y,0);
         _delay_ms(500);
         i = get_move();
         j = (random() % 3); //generate numbers in range [0,3)
         print_rps(i,j);
         break;
       case 3:
-        render(0xd,0xf+5,0xc,0xe,0);
+        render(CHAR_D,CHAR_I,CHAR_C,CHAR_E,0);
         _delay_ms(500);
         i = get_dice();
         switch(i){
@@ -353,21 +352,17 @@ int main (void){
             j = (random() % 100);
             break;
           }
-        render(0xf+3,0xf+4,0xf+0xa,0xf+0xa,0);
+        render(CHAR_R,CHAR_O,CHAR_L,CHAR_L,0);
         _delay_ms(500);
         i = j % 10;
         j = (j / 10) % 10;
-        render(0xf+1,0xf+1,j==0?0xf+1:j,i,0);
-        _delay_ms(2000);
-        break;
-      case 4:
-        render(0x5,0xe,0xe,0xd,0);
-        _delay_ms(500);
-        render(0xf+1,0xf+1,byte_hi(i),byte_lo(i),0);
+        i = number[i];
+        j = j == 0 ? CHAR_SPC : number[j];
+        render(CHAR_SPC,CHAR_SPC,j,i,0);
         _delay_ms(2000);
         break;
       default:
-        render(0xf+1,0xe,0xf+3,0xf+3,0);
+        render(CHAR_SPC,0xe,CHAR_R,CHAR_R,0);
         _delay_ms(500);
         break;
     }
