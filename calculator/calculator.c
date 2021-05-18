@@ -26,29 +26,30 @@ The AtTiny85 have this pinout:
  * */
 
 //This are the displayable simbols, initially the hex numbers 0..f
-uint8_t S[16] = {0x3f,0x06,0x5b,0x4f,
-                 0x66,0x6d,0x7d,0x07,
-                 0x7f,0x6f,0x77,0x7c,
-                 0x39,0x5e,0x79,0x71};
+uint8_t Sym[32] = {0x3f,0x06,0x5b,0x4f,  //0,1,2,3
+                   0x66,0x6d,0x7d,0x07,  //4,5,6,7
+                   0x7f,0x6f,0x77,0x7c,  //8,9,A,b
+                   0x39,0x5e,0x79,0x71,  //C,d,E,F
+                   0x00,0x72,0x50,0x5c,  // ,P,r,o
+                   0x30,0x40,0x00,0x00,  //i,-,
+                   0x00,0x00,0x00,0x00,  //
+                   0x00,0x00,0x00,0x00}; //
 
+uint8_t byte_hi(uint8_t hex){
+  return hex>>4;
+}
+uint8_t byte_lo(uint8_t hex){
+  return hex&0xf;
+}
 
-void render(uint8_t aa, uint8_t bb, uint8_t p){
-  //Render an hex duple in the screen in the format:
-  //  aa:bb
-  //the input is aa,bb = [0x00 .. 0xff]   p=[0,1]
-  //where aa is the first number, bb is the second number
-  //and p can be 1 to show the dots and 0 to not showing the dots
-
-  //the values are shifted to use only the MSB
-  TM1637_display_segments(0,S[aa>>4]);
-  //the second segment controls the dots
-  //
+void render(uint8_t a, uint8_t b,  uint8_t c,  uint8_t d, uint8_t p ){
+  TM1637_display_segments(0,Sym[a]);
   if(p==0)
-    TM1637_display_segments(1,S[aa&0xf]&~0x80);
+    TM1637_display_segments(1,Sym[b]&~0x80);
   else
-    TM1637_display_segments(1,S[aa&0xf]|0x80);
-  TM1637_display_segments(2,S[bb>>4]);
-  TM1637_display_segments(3,S[bb&0xf]);
+    TM1637_display_segments(1,Sym[b]|0x80);
+  TM1637_display_segments(2,Sym[c]);
+  TM1637_display_segments(3,Sym[d]);
 }
 
 uint8_t read_input(uint8_t limit){
@@ -90,7 +91,7 @@ uint8_t read_input(uint8_t limit){
           return op;
       }
     }
-    render(0x00,op,1);
+    render(0xf+6,0xf+6,byte_hi(op),byte_lo(op),1);
   }
 }
 
@@ -118,20 +119,23 @@ int main (void){
 
     //menu options
     switch(op){
-      case 1:
-        render(0x0a,0xdd,0);
+      case 1:  //Addition
+        render(0xf+1,0xa,0xd,0xd,0);
         _delay_ms(500);
         i = read_input(0xf);
-        render(0x00,0x00,0);
+        render(0xf+6,0xf+6,0xf+6,0xf+6,0);
         _delay_ms(500);
         j = read_input(0xf);
-        render(0x00,0x00,0);
+        render(0xf+6,0xf+6,0xf+6,0xf+6,0);
         _delay_ms(500);
-        render(0xad,i+j,1);
+        render(0xf+3,0xe,byte_hi(i+j),byte_lo(i+j),1);
         _delay_ms(1000);
         break;
+      case 5: //Rock Paper Sissor
+        
+        break;
       default:
-        render(0xee,0xee,0);
+        render(0xf+1,0xe,0xf+3,0xf+3,0);
         _delay_ms(500);
         break;
     }
