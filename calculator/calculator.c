@@ -1,6 +1,7 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/sleep.h>
+#include <avr/eeprom.h>
 #include "lib/tm1637.h"
 #include "lib/random.h"
 
@@ -25,7 +26,11 @@ The AtTiny85 have this pinout:
  * Connection pins for display are:
  *  - DIO: PB0
  *  - CLK: PB1
+ *
+ *  The other ones are buttons PB2, PB3, PB4
  * */
+
+uint16_t seed = 0;
 
 //This are the displayable simbols, initially the hex numbers 0..f
 uint8_t Sym[32] = {0x3f,0x06,0x5b,0x4f,  //0,1,2,3
@@ -155,6 +160,56 @@ uint8_t get_move(){
   }
 }
 
+uint8_t get_dice(){
+  //r:read  pr:previous_r
+  uint8_t r,pr = 0x7;
+  //op:selected_option
+  uint8_t op = 0x00;
+
+  while(1){
+    r = read_button(1); //mode 1, return always 
+    if(r != pr){
+      pr = r;
+      switch (r){
+        case 0:
+          if(op<=0) op=6;
+          else op--;
+          break;
+        case 2:
+          if(op>=6) op=0x0;
+          else op++;
+          break;
+        case 1:
+          return op;
+      }
+    }
+    switch(op){
+      case 0:
+        render(0xf+1,0xf+1,0xd,0x4,0);
+        break;
+      case 1:
+        render(0xf+1,0xf+1,0xd,0x6,0);
+        break;
+      case 2:
+        render(0xf+1,0xf+1,0xd,0x8,0);
+        break;
+      case 3:
+        render(0xf+1,0xd,0x1,0x0,0);
+        break;
+      case 4:
+        render(0xf+1,0xd,0x1,0x2,0);
+        break;
+      case 5:
+        render(0xf+1,0xd,0x2,0x0,0);
+        break;
+      case 6:
+        render(0xd,0x1,0x0,0x0,0);
+        break;
+    }
+  }
+}
+
+
 void print_rps(uint8_t i, uint8_t j){
   //Print the rock paper sissors result
   if(i == 0){
@@ -217,6 +272,7 @@ void print_rps(uint8_t i, uint8_t j){
 
 int main (void){
   uint8_t i,j = 0;
+  uint16_t x=0;
   uint8_t op = 0x0;
 
   //Setup Sleep mode
@@ -226,7 +282,7 @@ int main (void){
   TM1637_init(1,0);
 
   // Setup random number generator
-  random_init(0xa83f);
+  random_init(0xa03d); //setup seed
 
   //Setup Input buttons
   //unwrite ports to be sure that they are zeroes
@@ -242,7 +298,7 @@ int main (void){
   //read menu option
   op = read_input(0xf,0xf+4,0xf+2); //limit f and "oP" as tag 
   while(1){
-
+    x++;
     //menu options
     switch(op){
       case 0:
@@ -269,6 +325,48 @@ int main (void){
         i = get_move();
         j = (random() % 3); //generate numbers in range [0,3)
         print_rps(i,j);
+        break;
+      case 3:
+        render(0xd,0xf+5,0xc,0xe,0);
+        _delay_ms(500);
+        i = get_dice();
+        switch(i){
+          case 0:
+            j = (random() % 4)+1;
+            break;
+          case 1:
+            j = (random() % 6)+1;
+            break;
+          case 2:
+            j = (random() % 8)+1;
+            break;
+          case 3:
+            j = (random() % 10)+1;
+            break;
+          case 4:
+            j = (random() % 12)+1;
+            break;
+          case 5:
+            j = (random() % 20)+1;
+            break;
+          case 6:
+            j = (random() % 100);
+            break;
+          }
+        render(0xf+3,0xf+4,0xf+0xa,0xf+0xa,0);
+        _delay_ms(500);
+        i = j % 10;
+        j = (j / 10) % 10;
+        render(0xf+1,0xf+1,j==0?0xf+1:j,i,0);
+        _delay_ms(2000);
+        break;
+      case 4:
+        render(0x5,0xe,0xe,0xd,0);
+        _delay_ms(500);
+        i = eeprom_read_byte(0x00);
+        eeprom_update_byte(0x00,i+1);
+        render(0xf+1,0xf+1,byte_hi(i),byte_lo(i),0);
+        _delay_ms(2000);
         break;
       default:
         render(0xf+1,0xe,0xf+3,0xf+3,0);
