@@ -30,8 +30,6 @@ The AtTiny85 have this pinout:
  *  The other ones are buttons PB2, PB3, PB4
  * */
 
-uint16_t seed = 0;
-
 //This are the displayable simbols, initially the hex numbers 0..f
 uint8_t Sym[32] = {0x3f,0x06,0x5b,0x4f,  //0,1,2,3
                    0x66,0x6d,0x7d,0x07,  //4,5,6,7
@@ -282,7 +280,9 @@ int main (void){
   TM1637_init(1,0);
 
   // Setup random number generator
-  random_init(0xa03d); //setup seed
+  
+  random_init(eeprom_read_byte(0x00)); //setup seed
+  eeprom_update_byte(0x00,eeprom_read_byte(0x00)+1);
 
   //Setup Input buttons
   //unwrite ports to be sure that they are zeroes
@@ -363,8 +363,6 @@ int main (void){
       case 4:
         render(0x5,0xe,0xe,0xd,0);
         _delay_ms(500);
-        i = eeprom_read_byte(0x00);
-        eeprom_update_byte(0x00,i+1);
         render(0xf+1,0xf+1,byte_hi(i),byte_lo(i),0);
         _delay_ms(2000);
         break;
