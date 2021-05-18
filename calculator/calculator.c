@@ -1,5 +1,6 @@
 #include <avr/io.h>
 #include <util/delay.h>
+#include <avr/sleep.h>
 #include "lib/tm1637.h"
 #include "lib/random.h"
 
@@ -181,6 +182,9 @@ int main (void){
   uint8_t i,j = 0;
   uint8_t op = 0x0;
 
+  //Setup Sleep mode
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+
   // Setup display: enable (1: on, 0: off), brightness (0..7)
   TM1637_init(1,1);
 
@@ -204,6 +208,12 @@ int main (void){
 
     //menu options
     switch(op){
+      case 0:
+        render(0xf+1,0xf+4,0xf,0xf,0);
+        _delay_ms(500);
+        TM1637_init(0,0); //disabled and brightness 0
+        sleep_mode();
+        return 0;
       case 1:  //Addition
         render(0xf+1,0xa,0xd,0xd,0);
         _delay_ms(500);
