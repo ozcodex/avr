@@ -32,8 +32,8 @@ uint8_t Sym[32] = {0x3f,0x06,0x5b,0x4f,  //0,1,2,3
                    0x7f,0x6f,0x77,0x7c,  //8,9,A,b
                    0x39,0x5e,0x79,0x71,  //C,d,E,F
                    0x00,0x73,0x50,0x5c,  // ,P,r,o
-                   0x30,0x40,0x54,0x4d,  //i,-,n,G
-                   0x00,0x00,0x00,0x00,  //
+                   0x30,0x40,0x54,0x3d,  //i,-,n,G
+                   0x78,0x38,0x6e,0x00,  //t,L,Y
                    0x00,0x00,0x00,0x00}; //
 
 uint8_t byte_hi(uint8_t hex){
@@ -90,7 +90,7 @@ uint8_t read_button(uint8_t mode){
   }
 }
 
-uint8_t read_input(uint8_t limit){
+uint8_t read_input(uint8_t limit,uint8_t a, uint8_t b){
   //r:read  pr:previous_r
   uint8_t r,pr = 0x7;
   //op:selected_option
@@ -113,8 +113,68 @@ uint8_t read_input(uint8_t limit){
           return op;
       }
     }
-    render(0xf+4,0xf+2,byte_hi(op),byte_lo(op),1);
+    render(a,b,byte_hi(op),byte_lo(op),1);
   }
+}
+
+void print_rps(uint8_t i, uint8_t j){
+  //Print the rock paper sissors result
+  if(i == 0){
+    // user choose rock
+    if (j == 0){
+      //system choose rock
+      render(0xf+3,0xf+4,0xf+3,0xf+4,1); //ro:ro
+      _delay_ms(2000);
+      render(0xf+1,0xf+9,0xf+5,0xe,0); //tie
+    } else if (j == 1){
+      //system choose paper
+      render(0xf+3,0xf+4,0xf+2,0xa,1); //ro:PA
+      _delay_ms(2000);
+      render(0xf+1,0xb,0xa,0xd,0); //bad
+    } else if (j == 2){ 
+      //system choose sissors
+      render(0xf+3,0xf+4,0x5,0xf+5,1); //ro:Si
+      _delay_ms(2000);
+      render(0xf+8,0xf+4,0xf+4,0xd,0); //good
+    }
+  }else if(i == 1){
+    //user choose paper
+    if (j == 0){
+      //system choose rock
+      render(0xf+2,0xa,0xf+3,0xf+4,1); //PA:ro
+      _delay_ms(2000);
+      render(0xf+8,0xf+4,0xf+4,0xd,0); //good
+    } else if (j == 1){
+      //system choose paper
+      render(0xf+2,0xa,0xf+2,0xa,1); //PA:PA
+      _delay_ms(2000);
+      render(0xf+1,0xf+9,0xf+5,0xe,0); //tie
+    } else if (j == 2){ 
+      //system choose sissors
+      render(0xf+2,0xa,0x5,0xf+5,1); //PA:Si
+      _delay_ms(2000);
+      render(0xf+1,0xb,0xa,0xd,0); //bad
+    }
+  }else if(i == 2){
+    //user choose sissors
+    if (j == 0){
+      //system choose rock
+      render(0x5,0xf+5,0xf+3,0xf+4,1); //Si:ro
+      _delay_ms(2000);
+      render(0xf+1,0xb,0xa,0xd,0); //bad
+    } else if (j == 1){
+      //system choose paper
+      render(0x5,0xf+5,0xf+2,0xa,1); //Si:PA
+      _delay_ms(2000);
+      render(0xf+8,0xf+4,0xf+4,0xd,0); //good
+    } else if (j == 2){
+      //system choose sissors
+      render(0x5,0xf+5,0x5,0xf+5,1); //Si:Si
+      _delay_ms(2000);
+      render(0xf+1,0xf+9,0xf+5,0xe,0); //tie
+    }
+  }
+  _delay_ms(2000);
 }
 
 int main (void){
@@ -140,27 +200,28 @@ int main (void){
 
   while(1){
     //read menu option
-    op = read_input(0xf);
+    op = read_input(0xf,0xf+4,0xf+2); //limit f and "oP" as tag 
 
     //menu options
     switch(op){
       case 1:  //Addition
         render(0xf+1,0xa,0xd,0xd,0);
         _delay_ms(500);
-        i = read_input(0xf);
+        i = read_input(0xf,0xf+7,1);
         render(0xf+6,0xf+6,0xf+6,0xf+6,0);
         _delay_ms(500);
-        j = read_input(0xf);
+        j = read_input(0xf,0xf+7,2);
         render(0xf+6,0xf+6,0xf+6,0xf+6,0);
         _delay_ms(500);
         render(0xf+3,0xe,byte_hi(i+j),byte_lo(i+j),1);
         _delay_ms(2000);
         break;
       case 2: //Rock Paper Sissor
-        i = read_button(0); //mode 0, wait for key press
+        render(0xf+2,0xf+0xa,0xa,0xf+0xb,0);
+        _delay_ms(500);
+        i = read_input(2,0xf+6,0xf+6);
         j = (random() % 3); //generate numbers in range [0,3)
-        render(0xf+1,i,0xf+1,j,1);
-        _delay_ms(2000);
+        print_rps(i,j);
         break;
       default:
         render(0xf+1,0xe,0xf+3,0xf+3,0);
