@@ -71,18 +71,18 @@ uint8_t read_button(uint8_t mode){
     //whit this r will be:
     //0x00 = all button pressed
     //0x07 = no button pressed
-    //0x06 = x button pressed
-    //0x05 = y button pressed
-    //0x04 = xy buttons pressed
-    //0x03 = z button pressed
-    //0x02 = xz buttons pressed
-    //0x01 = yz buttons pressed
+    //0x05 = a button pressed
+    //0x03 = b button pressed
+    //0x06 = c button pressed
+    //0x01 = ab buttons pressed
+    //0x04 = ac buttons pressed
+    //0x02 = bc buttons pressed
     switch (r){
-      case 0x6: //x button
+      case 0x5: //a button
         return 0;
-      case 0x5: //y button
+      case 0x3: //b button
         return 1;
-      case 0x3: //z button
+      case 0x6: //c button
         return 2;
       default:
         if(mode==1) return 3;
@@ -115,6 +115,43 @@ uint8_t read_input(uint8_t limit,uint8_t a, uint8_t b){
       }
     }
     render(a,b,byte_hi(op),byte_lo(op),1);
+  }
+}
+
+uint8_t get_move(){
+  //r:read  pr:previous_r
+  uint8_t r,pr = 0x7;
+  //op:selected_option
+  uint8_t op = 0x00;
+
+  while(1){
+    r = read_button(1); //mode 1, return always 
+    if(r != pr){
+      pr = r;
+      switch (r){
+        case 0:
+          if(op<=0) op=2;
+          else op--;
+          break;
+        case 2:
+          if(op>=2) op=0x0;
+          else op++;
+          break;
+        case 1:
+          return op;
+      }
+    }
+    switch(op){
+      case 0:
+        render(0xf+3,0xf+4,0xf+6,0xf+6,1);
+        break;
+      case 1:
+        render(0xf+2,0xa,0xf+6,0xf+6,1);
+        break;
+      case 2:
+        render(0x5,0xf+5,0xf+6,0xf+6,1);
+        break;
+    }
   }
 }
 
@@ -186,7 +223,7 @@ int main (void){
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 
   // Setup display: enable (1: on, 0: off), brightness (0..7)
-  TM1637_init(1,1);
+  TM1637_init(1,0);
 
   // Setup random number generator
   random_init(0xa83f);
@@ -202,9 +239,9 @@ int main (void){
   PORTB |= (1 << PORTB3);
   PORTB |= (1 << PORTB4);
 
+  //read menu option
+  op = read_input(0xf,0xf+4,0xf+2); //limit f and "oP" as tag 
   while(1){
-    //read menu option
-    op = read_input(0xf,0xf+4,0xf+2); //limit f and "oP" as tag 
 
     //menu options
     switch(op){
@@ -229,7 +266,7 @@ int main (void){
       case 2: //Rock Paper Sissor
         render(0xf+2,0xf+0xa,0xa,0xf+0xb,0);
         _delay_ms(500);
-        i = read_input(2,0xf+6,0xf+6);
+        i = get_move();
         j = (random() % 3); //generate numbers in range [0,3)
         print_rps(i,j);
         break;
