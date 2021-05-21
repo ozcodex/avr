@@ -300,7 +300,7 @@ int main (void){
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 
   // Setup display: enable (1: on, 0: off), brightness (0..7)
-  TM1637_init(1,0);
+  TM1637_init(1,1);
 
   // Setup random number generator
   
@@ -333,10 +333,10 @@ int main (void){
       case 1:  //Addition
         render(CHAR_SPC,CHAR_A,CHAR_D,CHAR_D,0);
         _delay_ms(500);
-        i = read_input(0xf,CHAR_N,1);
+        i = read_input(0x7f,CHAR_N,1);
         render(CHAR_DASH,CHAR_DASH,CHAR_DASH,CHAR_DASH,0);
         _delay_ms(500);
-        j = read_input(0xf,CHAR_N,2);
+        j = read_input(0x7f,CHAR_N,2);
         render(CHAR_DASH,CHAR_DASH,CHAR_DASH,CHAR_DASH,0);
         _delay_ms(500);
         render(CHAR_R,0xe,byte_hi(i+j),byte_lo(i+j),1);
