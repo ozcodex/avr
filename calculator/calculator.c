@@ -182,7 +182,7 @@ uint8_t get_dice(){
   //r:read  pr:previous_r
   uint8_t r,pr = 0x7;
   //op:selected_option
-  uint8_t op = 0x00;
+  uint8_t op = 0x06;
 
   while(1){
     r = read_button(1); //mode 1, return always 
