@@ -116,7 +116,7 @@ uint8_t read_input(uint8_t limit,uint8_t a, uint8_t b){
           return op;
       }
     }
-    render(number[a],number[b],number[byte_hi(op)],number[byte_lo(op)],1);
+    render(a,b,number[byte_hi(op)],number[byte_lo(op)],1);
   }
 }
 
@@ -155,6 +155,27 @@ uint8_t get_move(){
         break;
     }
   }
+}
+
+
+uint16_t roll_random(){
+  //r:read
+  uint8_t r = 0x07;
+  uint16_t result = 0x0000;
+  //roll several random numbers while the button is pressed
+  render(CHAR_R,CHAR_O,CHAR_L,CHAR_L,0);
+  _delay_ms(500);
+  //whain until any button is pressed
+  while(r == 0x07){
+    r = (PINB & 0x1C) >> 2; //see read_button() to see description
+  }
+  //roll while any button is still pressed
+  while(r != 0x07){
+    r = (PINB & 0x1C) >> 2; //see read_button() to see description
+    result = random();
+    render(number[(result>>12)&0xf],number[(result>>8)&0xf],number[(result>>4)&0xf],number[result&0xf],0);
+  }
+  return result;
 }
 
 uint8_t get_dice(){
@@ -280,8 +301,8 @@ int main (void){
 
   // Setup random number generator
   
-  random_init(eeprom_read_byte(0x00)); //setup seed
-  eeprom_update_byte(0x00,eeprom_read_byte(0x00)+1);
+  random_init(eeprom_read_word(0x0000)); //setup seed
+  eeprom_update_word(0x0000,random());
 
   //Setup Input buttons
   //unwrite ports to be sure that they are zeroes
@@ -329,31 +350,30 @@ int main (void){
         render(CHAR_D,CHAR_I,CHAR_C,CHAR_E,0);
         _delay_ms(500);
         i = get_dice();
+        x = roll_random();
         switch(i){
           case 0:
-            j = (random() % 4)+1;
+            j = (x % 4)+1;
             break;
           case 1:
-            j = (random() % 6)+1;
+            j = (x % 6)+1;
             break;
           case 2:
-            j = (random() % 8)+1;
+            j = (x % 8)+1;
             break;
           case 3:
-            j = (random() % 10)+1;
+            j = (x % 10)+1;
             break;
           case 4:
-            j = (random() % 12)+1;
+            j = (x % 12)+1;
             break;
           case 5:
-            j = (random() % 20)+1;
+            j = (x % 20)+1;
             break;
           case 6:
-            j = (random() % 100);
+            j = (x % 100);
             break;
           }
-        render(CHAR_R,CHAR_O,CHAR_L,CHAR_L,0);
-        _delay_ms(500);
         i = j % 10;
         j = (j / 10) % 10;
         i = number[i];

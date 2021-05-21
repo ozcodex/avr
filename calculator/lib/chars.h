@@ -4,7 +4,7 @@
 #define CHAR_0     0x3F
 #define CHAR_1     0x06
 #define CHAR_2     0x5B
-#define CHAR_3     0x47
+#define CHAR_3     0x4F
 #define CHAR_4     0x66
 #define CHAR_5     0x6D
 #define CHAR_6     0x7D
