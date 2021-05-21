@@ -86,8 +86,11 @@ uint8_t read_button(uint8_t mode){
         return 1;
       case 0x6: //c button
         return 2;
-      default:
+      case 0x7: //no button pressed
         if(mode==1) return 3;
+        break;
+      default:
+        if(mode==1) return 4;
         break;
     }
   }
@@ -160,18 +163,18 @@ uint8_t get_move(){
 
 uint16_t roll_random(){
   //r:read
-  uint8_t r = 0x07;
+  uint8_t r = 3;
   uint16_t result = 0x0000;
   //roll several random numbers while the button is pressed
   render(CHAR_R,CHAR_O,CHAR_L,CHAR_L,0);
   _delay_ms(500);
   //whain until any button is pressed
-  while(r == 0x07){
-    r = (PINB & 0x1C) >> 2; //see read_button() to see description
+  while(r == 3){
+    r = read_button(1); //mode 1, return allways
   }
   //roll while any button is still pressed
-  while(r != 0x07){
-    r = (PINB & 0x1C) >> 2; //see read_button() to see description
+  while(r != 3){
+    r = read_button(1); //mode 1, return allways
     result = random();
     render(number[(result>>12)&0xf],number[(result>>8)&0xf],number[(result>>4)&0xf],number[result&0xf],0);
   }
@@ -381,8 +384,30 @@ int main (void){
         render(CHAR_SPC,CHAR_SPC,j,i,0);
         _delay_ms(2000);
         break;
+      case 4:
+        render(CHAR_T,CHAR_A,CHAR_L,CHAR_Y,0);
+        _delay_ms(500);
+        i = 0;
+        while(1){
+          render( number[(i / 1000) % 10], number[(i / 100) % 10] , number[(i / 10) % 10 ], number[i % 10] ,0);
+          j = read_button(0); //mode 0, wait for push
+          switch(j){
+            case 0:
+              if (i>0) i--;
+              break;
+            case 1:
+              if (i<9999) i++;
+              break;
+            case 2:
+              i = 0;
+            break;
+          }
+          //wait until no key is pressed
+          while(read_button(1)!=3);
+        }
+        break;
       default:
-        render(CHAR_SPC,0xe,CHAR_R,CHAR_R,0);
+        render(CHAR_SPC,CHAR_E,CHAR_R,CHAR_R,0);
         _delay_ms(500);
         break;
     }
