@@ -333,13 +333,13 @@ int main (void){
       case 1:  //Addition
         render(CHAR_SPC,CHAR_A,CHAR_D,CHAR_D,0);
         _delay_ms(500);
-        i = read_input(0x7f,CHAR_N,1);
+        i = read_input(0x7f,CHAR_N,CHAR_1);
         render(CHAR_DASH,CHAR_DASH,CHAR_DASH,CHAR_DASH,0);
         _delay_ms(500);
-        j = read_input(0x7f,CHAR_N,2);
+        j = read_input(0x7f,CHAR_N,CHAR_2);
         render(CHAR_DASH,CHAR_DASH,CHAR_DASH,CHAR_DASH,0);
         _delay_ms(500);
-        render(CHAR_R,0xe,byte_hi(i+j),byte_lo(i+j),1);
+        render(CHAR_R,CHAR_E,byte_hi(i+j),byte_lo(i+j),1);
         _delay_ms(2000);
         break;
       case 2: //Rock Paper Sissor
