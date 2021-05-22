@@ -139,9 +139,103 @@ Does noting.
 
 ####ADD - ADDITION
 10 0 00001 Register (ADD B)     0x81
-11 0 00001 Constant (ADD conts) 0xC1
+11 0 00001 Constant (ADD const) 0xC1
 
-Adds to the A register the value of the given register or constant. Modifies the
-flags according to the result.
+Adds to the A register the value of the given register or constant. Modifies
+the flags according to the result.
+
+####SUB - SUBSTRACTION
+10 0 00010 Register (SUB B)     0x82
+11 0 00010 Constant (SUB const) 0xC2
+
+Substracts from A the value of the given register or constant, writes the
+result to the A register and modifies the flags according.
+
+####MUL - MULTIPLICATION
+10 0 00011 Register (SUB B)     0x83
+11 0 00011 Constant (SUB const) 0xC3
+
+Multiplies A times the given register or constant, writes the result to A and
+changes the flags.
+
+####DIV - DIVISION
+10 0 00100 Register (SUB B)     0x84
+11 0 00100 Constant (SUB const) 0xC4
+
+Divides the value of A between the given value (register or constant), stores
+in A the result and writes the flags.
+
+####NOT - NEGATION
+00 0 00111 (NOT) 0x07
+
+Inverts all the bits in the rugister A.
+
+####AND, OR, XOR
+10 0 01000 Register (AND B)     0x88
+11 0 01000 Constant (AND const) 0xC8
+10 0 01001 Register (OR B)      0x89
+11 0 01001 Constant (OR const)  0xC9
+10 0 01010 Register (XOR B)     0x8A
+11 0 01010 Constant (XOR const) 0xCA
+
+Applies the logic gate to the rugister A with the given value (register or
+constant) and changes the flags.
+
+####JMP - UNCONDITIONAL JUMP
+11 0 01011 Label (JMP label) 0xEB
+
+Unconditionally jumps to the given instruction address (indicated by the 
+label).
+
+####JE, JNE, JA, JAE, JB, JBE - CONDITIONAL JUMPS
+11 0 01100 Label (JE label)  0xCC
+11 0 01101 Label (JNE label) 0xCD
+11 0 10000 Label (JA label)  0xD0
+11 0 10001 Label (JAE label) 0xD1
+11 0 10010 Label (JB label)  0xD2
+11 0 10011 Label (JBE label) 0xD3
+
+Checks the flags and only jump if the given conditions matchs.
+- JE: Jumps Equal
+- JNE: Jumps Not Equal
+- JA: Jumps Above
+- JAE: Jumps Above or Equal
+- JB: Jumps Below
+- JBE: Jumps Below or Equal
+
+####WTM, WTS - WAIT
+11 0 01110 Constant (WTM const) 0xCE
+11 0 01111 Constant (WTS const) 0xCF
+
+Wait the given amount of time, milliseconds for WTM and seconds for WTS.
+
+####IN - INPUT
+00 0 10100 (IN) 0x14
+
+Reads an hex input and writes it to the register D.
+
+####PNT - PRINT
+01 0 10101 (PNT 0, addr)  0x55
+11 0 10101 (PNT 0, const) 0xD5
+01 0 10110 (PNT 1, addr)  0x56
+11 0 10110 (PNT 1, const) 0xD6
+
+Print the value in the address or the constant as hexadecimal to a pair of
+digits in the screen, being 0 the two right most digits.
+
+####OUT - OUTPUT
+11 0 10000 Constant (OUT 0, const) 0xD0
+11 0 10001 Constant (OUT 1, const) 0xD1
+11 0 10010 Constant (OUT 2, const) 0xD2
+11 0 10011 Constant (OUT 3, const) 0xD3
+
+Writes the raw value to the given digit in the screen, being 0 the right most
+digit.
+
+
+
+
+
+
 
 
