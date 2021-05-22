@@ -44,6 +44,7 @@ uint8_t byte_hi(uint8_t hex);
 uint8_t byte_lo(uint8_t hex);
 void render(uint8_t a, uint8_t b,  uint8_t c,  uint8_t d, uint8_t p );
 void print_rps(uint8_t i, uint8_t j);
+void print_loading(uint8_t status);
 uint8_t read_button(uint8_t mode);
 uint8_t read_input(uint8_t limit,uint8_t a, uint8_t b);
 uint8_t get_move();
@@ -55,6 +56,7 @@ void check_dice(uint8_t dice, uint16_t roll);
 void tally_counter();
 void led_settings();
 void edit_eeprom(uint16_t init, uint16_t end);
+void run(uint16_t init, uint16_t end);
 
 /*
  *
@@ -126,6 +128,14 @@ int main (void){
         break;
       case 6:
         edit_eeprom(0x0100,0x01FF);
+        break;
+      case 7:
+        render(CHAR_R,CHAR_U,CHAR_N,CHAR_SPC,0);
+        _delay_ms(500);
+        break;
+      case 8:
+        render(CHAR_C,CHAR_L,CHAR_R,CHAR_SPC,0);
+        _delay_ms(500);
         break;
       default:
         render(CHAR_SPC,CHAR_E,CHAR_R,CHAR_R,0);
@@ -209,6 +219,23 @@ void print_rps(uint8_t i, uint8_t j){
     }
   }
   _delay_ms(2000);
+}
+
+void print_loading(uint8_t status){
+  uint8_t bar = 0;
+  bar = (status)%12;
+  if (bar == 0) render(0,0,0,LINE_UR,0);
+  if (bar == 1) render(0,0,0,LINE_DR,0);
+  if (bar == 2) render(0,0,0,LINE_D,0);
+  if (bar == 3) render(0,0,LINE_D,0,0);
+  if (bar == 4) render(0,LINE_D,0,0,0);
+  if (bar == 5) render(LINE_D,0,0,0,0);
+  if (bar == 6) render(LINE_DL,0,0,0,0);
+  if (bar == 7) render(LINE_UL,0,0,0,0);
+  if (bar == 8) render(LINE_U,0,0,0,0);
+  if (bar == 9) render(0,LINE_U,0,0,0);
+  if (bar == 10) render(0,0,LINE_U,0,0);
+  if (bar == 11) render(0,0,0,LINE_U,0);
 }
 
 uint8_t byte_hi(uint8_t hex){
@@ -424,19 +451,7 @@ uint16_t roll_random(){
   while(r != 3){
     r = read_button(1); //mode 1, return allways
     result = random();
-    b = (a/12)%12;
-    if (b == 0) render(0,0,0,LINE_UR,0);
-    if (b == 1) render(0,0,0,LINE_DR,0);
-    if (b == 2) render(0,0,0,LINE_D,0);
-    if (b == 3) render(0,0,LINE_D,0,0);
-    if (b == 4) render(0,LINE_D,0,0,0);
-    if (b == 5) render(LINE_D,0,0,0,0);
-    if (b == 6) render(LINE_DL,0,0,0,0);
-    if (b == 7) render(LINE_UL,0,0,0,0);
-    if (b == 8) render(LINE_U,0,0,0,0);
-    if (b == 9) render(0,LINE_U,0,0,0);
-    if (b == 10) render(0,0,LINE_U,0,0);
-    if (b == 11) render(0,0,0,LINE_U,0);
+    print_loading(a/12);
     a++;
     if (a >= 144) a = 0;
   }
@@ -571,3 +586,32 @@ void edit_eeprom(uint16_t init, uint16_t end){
     while(read_button(1)!=3);
   }
 }
+
+void run(uint16_t init, uint16_t end){
+  //TODO: Run the code
+}
+
+void clear_eeprom(uint16_t init, uint16_t end){
+  uint8_t r = 0;
+  uint8_t i = 0;
+  render(CHAR_5,CHAR_U,CHAR_R,CHAR_E,0);
+  //wait until no key is pressed
+  while(read_button(1)!=3);
+  r = read_button(0); //mode 0, wait for push
+  if(r != 1)
+    return;
+  for(i = 0;(init + i) < end; i++){
+     print_loading(i);
+     eeprom_update_byte((uint8_t *) (init + i),0x00);
+     eeprom_busy_wait();
+  }
+  render(CHAR_D,CHAR_O,CHAR_N,CHAR_E,0);
+  _delay_ms(500);
+}
+
+
+
+
+
+
+
