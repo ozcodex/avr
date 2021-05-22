@@ -163,7 +163,7 @@ uint8_t get_move(){
 
 uint16_t roll_random(){
   //r:read
-  uint8_t r = 3;
+  uint8_t a,b,r = 3;
   uint16_t result = 0x0000;
   //roll several random numbers while the button is pressed
   render(CHAR_R,CHAR_O,CHAR_L,CHAR_L,0);
@@ -176,7 +176,21 @@ uint16_t roll_random(){
   while(r != 3){
     r = read_button(1); //mode 1, return allways
     result = random();
-    render(number[(result>>12)&0xf],number[(result>>8)&0xf],number[(result>>4)&0xf],number[result&0xf],0);
+    b = (a/12)%12;
+    if (b == 0) render(0,0,0,LINE_UR,0);
+    if (b == 1) render(0,0,0,LINE_DR,0);
+    if (b == 2) render(0,0,0,LINE_D,0);
+    if (b == 3) render(0,0,LINE_D,0,0);
+    if (b == 4) render(0,LINE_D,0,0,0);
+    if (b == 5) render(LINE_D,0,0,0,0);
+    if (b == 6) render(LINE_DL,0,0,0,0);
+    if (b == 7) render(LINE_UL,0,0,0,0);
+    if (b == 8) render(LINE_U,0,0,0,0);
+    if (b == 9) render(0,LINE_U,0,0,0);
+    if (b == 10) render(0,0,LINE_U,0,0);
+    if (b == 11) render(0,0,0,LINE_U,0);
+    a++;
+    if (a >= 144) a = 0;
   }
   return result;
 }

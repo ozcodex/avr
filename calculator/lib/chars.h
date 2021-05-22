@@ -28,6 +28,13 @@
 #define CHAR_T     0x78
 #define CHAR_L     0x38
 #define CHAR_Y     0x6E
+#define LINE_U     0x01
+#define LINE_UR    0x02
+#define LINE_DR    0x04
+#define LINE_D     0x08
+#define LINE_DL    0x10
+#define LINE_UL    0x20
+#define LINE_M     0x40
 
 #endif	/* !_RANDOM_H_ */
 
