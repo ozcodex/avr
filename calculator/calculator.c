@@ -57,6 +57,7 @@ void tally_counter();
 void led_settings();
 void edit_eeprom(uint16_t init, uint16_t end);
 void run(uint16_t init, uint16_t end);
+void clear_eeprom(uint16_t init, uint16_t end);
 
 /*
  *
@@ -134,8 +135,7 @@ int main (void){
         _delay_ms(500);
         break;
       case 8:
-        render(CHAR_C,CHAR_L,CHAR_R,CHAR_SPC,0);
-        _delay_ms(500);
+        clear_eeprom(0x0100, 0x01FF);
         break;
       default:
         render(CHAR_SPC,CHAR_E,CHAR_R,CHAR_R,0);
@@ -432,7 +432,7 @@ void hex_add(){
   j = read_input(0x7f,CHAR_N,CHAR_2);
   render(CHAR_DASH,CHAR_DASH,CHAR_DASH,CHAR_DASH,0);
   _delay_ms(500);
-  render(CHAR_R,CHAR_E,byte_hi(i+j),byte_lo(i+j),1);
+  render(CHAR_R,CHAR_E,number[byte_hi(i+j)],number[byte_lo(i+j)],1);
   _delay_ms(2000);
 }
 
@@ -594,13 +594,17 @@ void run(uint16_t init, uint16_t end){
 void clear_eeprom(uint16_t init, uint16_t end){
   uint8_t r = 0;
   uint8_t i = 0;
+  render(CHAR_C,CHAR_L,CHAR_R,CHAR_SPC,0);
+  _delay_ms(500);
   render(CHAR_5,CHAR_U,CHAR_R,CHAR_E,0);
   //wait until no key is pressed
   while(read_button(1)!=3);
   r = read_button(0); //mode 0, wait for push
   if(r != 1)
+    render(CHAR_N,CHAR_O,CHAR_SPC,CHAR_SPC,0);
+    _delay_ms(500);
     return;
-  for(i = 0;(init + i) < end; i++){
+  for(i = 0;(init + i) <= end; i++){
      print_loading(i);
      eeprom_update_byte((uint8_t *) (init + i),0x00);
      eeprom_busy_wait();
