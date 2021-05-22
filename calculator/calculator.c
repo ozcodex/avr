@@ -593,24 +593,28 @@ void run(uint16_t init, uint16_t end){
 
 void clear_eeprom(uint16_t init, uint16_t end){
   uint8_t r = 0;
-  uint8_t i = 0;
+  uint16_t i = 0;
   render(CHAR_C,CHAR_L,CHAR_R,CHAR_SPC,0);
   _delay_ms(500);
   render(CHAR_5,CHAR_U,CHAR_R,CHAR_E,0);
   //wait until no key is pressed
   while(read_button(1)!=3);
   r = read_button(0); //mode 0, wait for push
-  if(r != 1)
+  if(r != 1){
     render(CHAR_N,CHAR_O,CHAR_SPC,CHAR_SPC,0);
     _delay_ms(500);
+    main();
     return;
-  for(i = 0;(init + i) <= end; i++){
-     print_loading(i);
-     eeprom_update_byte((uint8_t *) (init + i),0x00);
-     eeprom_busy_wait();
+  }
+  for(i = 0;i <= (end - init); i++){
+    print_loading(i);
+    _delay_ms(12);
+    eeprom_update_byte((uint8_t *) (init + i),0x00);
+    eeprom_busy_wait();
   }
   render(CHAR_D,CHAR_O,CHAR_N,CHAR_E,0);
   _delay_ms(500);
+  main();
 }
 
 
