@@ -39,271 +39,23 @@ uint8_t number[16] = {
   CHAR_C, CHAR_D, CHAR_E, CHAR_F
   };
 
-uint8_t byte_hi(uint8_t hex){
-  return hex>>4;
-}
-uint8_t byte_lo(uint8_t hex){
-  return hex&0xf;
-}
+//Fuctions signatures
+uint8_t byte_hi(uint8_t hex);
+uint8_t byte_lo(uint8_t hex);
+void render(uint8_t a, uint8_t b,  uint8_t c,  uint8_t d, uint8_t p );
+void print_rps(uint8_t i, uint8_t j);
+uint8_t read_button(uint8_t mode);
+uint8_t read_input(uint8_t limit,uint8_t a, uint8_t b);
+uint8_t get_move();
+uint8_t get_dice();
+void power_off();
+uint16_t roll_random();
 
-void render(uint8_t a, uint8_t b,  uint8_t c,  uint8_t d, uint8_t p ){
-  TM1637_display_segments(0,a);
-  if(p==0)
-    TM1637_display_segments(1,b&~0x80);
-  else
-    TM1637_display_segments(1,b|0x80);
-  TM1637_display_segments(2,c);
-  TM1637_display_segments(3,d);
-}
-
-uint8_t read_button(uint8_t mode){
-  //modes:
-  //  0: return only after a key is pressed
-  //  1: return after a change
-  //r:read
-  uint8_t r = 0x00;
-  //infinite loop until read a value
-  while(1){
-    //get the pin values isolated
-    // B00011100 = 0x1C
-    // the ones idicates PB2,PB3 and PB4
-    //then shift it 2 spaces
-    r = (PINB & 0x1C) >> 2;
-    //this will leave on r 00000ZYX where x is PB2, y is PB3, and z is PB4
-    //whit this r will be:
-    //0x00 = all button pressed
-    //0x07 = no button pressed
-    //0x05 = a button pressed
-    //0x03 = b button pressed
-    //0x06 = c button pressed
-    //0x01 = ab buttons pressed
-    //0x04 = ac buttons pressed
-    //0x02 = bc buttons pressed
-    switch (r){
-      case 0x5: //a button
-        return 0;
-      case 0x3: //b button
-        return 1;
-      case 0x6: //c button
-        return 2;
-      case 0x7: //no button pressed
-        if(mode==1) return 3;
-        break;
-      default:
-        if(mode==1) return 4;
-        break;
-    }
-  }
-}
-
-uint8_t read_input(uint8_t limit,uint8_t a, uint8_t b){
-  //r:read  pr:previous_r
-  uint8_t r,pr = 0x7;
-  //op:selected_option
-  uint8_t op = 0x00;
-
-  while(1){
-    r = read_button(1); //mode 1, return always 
-    if(r != pr){
-      pr = r;
-      switch (r){
-        case 0: //x button
-          if(op<=0) op=limit;
-          else op--;
-          break;
-        case 2: //z button
-          if(op>=limit) op=0x0;
-          else op++;
-          break;
-        case 1: //y button
-          return op;
-      }
-    }
-    render(a,b,number[byte_hi(op)],number[byte_lo(op)],1);
-  }
-}
-
-uint8_t get_move(){
-  //r:read  pr:previous_r
-  uint8_t r,pr = 0x7;
-  //op:selected_option
-  uint8_t op = 0x00;
-
-  while(1){
-    r = read_button(1); //mode 1, return always 
-    if(r != pr){
-      pr = r;
-      switch (r){
-        case 0:
-          if(op<=0) op=2;
-          else op--;
-          break;
-        case 2:
-          if(op>=2) op=0x0;
-          else op++;
-          break;
-        case 1:
-          return op;
-      }
-    }
-    switch(op){
-      case 0:
-        render(CHAR_R,CHAR_O,CHAR_DASH,CHAR_DASH,1);
-        break;
-      case 1:
-        render(CHAR_P,CHAR_A,CHAR_DASH,CHAR_DASH,1);
-        break;
-      case 2:
-        render(CHAR_5,CHAR_I,CHAR_DASH,CHAR_DASH,1);
-        break;
-    }
-  }
-}
-
-
-uint16_t roll_random(){
-  //r:read
-  uint8_t a,b,r = 3;
-  uint16_t result = 0x0000;
-  //roll several random numbers while the button is pressed
-  render(CHAR_R,CHAR_O,CHAR_L,CHAR_L,0);
-  _delay_ms(500);
-  //whain until any button is pressed
-  while(r == 3){
-    r = read_button(1); //mode 1, return allways
-  }
-  //roll while any button is still pressed
-  while(r != 3){
-    r = read_button(1); //mode 1, return allways
-    result = random();
-    b = (a/12)%12;
-    if (b == 0) render(0,0,0,LINE_UR,0);
-    if (b == 1) render(0,0,0,LINE_DR,0);
-    if (b == 2) render(0,0,0,LINE_D,0);
-    if (b == 3) render(0,0,LINE_D,0,0);
-    if (b == 4) render(0,LINE_D,0,0,0);
-    if (b == 5) render(LINE_D,0,0,0,0);
-    if (b == 6) render(LINE_DL,0,0,0,0);
-    if (b == 7) render(LINE_UL,0,0,0,0);
-    if (b == 8) render(LINE_U,0,0,0,0);
-    if (b == 9) render(0,LINE_U,0,0,0);
-    if (b == 10) render(0,0,LINE_U,0,0);
-    if (b == 11) render(0,0,0,LINE_U,0);
-    a++;
-    if (a >= 144) a = 0;
-  }
-  return result;
-}
-
-uint8_t get_dice(){
-  //r:read  pr:previous_r
-  uint8_t r,pr = 0x7;
-  //op:selected_option
-  uint8_t op = 0x06;
-
-  while(1){
-    r = read_button(1); //mode 1, return always 
-    if(r != pr){
-      pr = r;
-      switch (r){
-        case 0:
-          if(op<=0) op=6;
-          else op--;
-          break;
-        case 2:
-          if(op>=6) op=0x0;
-          else op++;
-          break;
-        case 1:
-          return op;
-      }
-    }
-    switch(op){
-      case 0:
-        render(CHAR_SPC,CHAR_SPC,CHAR_D,CHAR_4,0);
-        break;
-      case 1:
-        render(CHAR_SPC,CHAR_SPC,CHAR_D,CHAR_6,0);
-        break;
-      case 2:
-        render(CHAR_SPC,CHAR_SPC,CHAR_D,CHAR_8,0);
-        break;
-      case 3:
-        render(CHAR_SPC,CHAR_D,CHAR_1,CHAR_0,0);
-        break;
-      case 4:
-        render(CHAR_SPC,CHAR_D,CHAR_1,CHAR_2,0);
-        break;
-      case 5:
-        render(CHAR_SPC,CHAR_D,CHAR_2,CHAR_0,0);
-        break;
-      case 6:
-        render(CHAR_D,CHAR_1,CHAR_0,CHAR_0,0);
-        break;
-    }
-  }
-}
-
-
-void print_rps(uint8_t i, uint8_t j){
-  //Print the rock paper sissors result
-  if(i == 0){
-    // user choose rock
-    if (j == 0){
-      //system choose rock
-      render(CHAR_R,CHAR_O,CHAR_R,CHAR_O,1); //ro:ro
-      _delay_ms(2000);
-      render(CHAR_SPC,CHAR_T,CHAR_I,CHAR_E,0); //tie
-    } else if (j == 1){
-      //system choose paper
-      render(CHAR_R,CHAR_O,CHAR_P,CHAR_A,1); //ro:PA
-      _delay_ms(2000);
-      render(CHAR_SPC,CHAR_B,CHAR_A,CHAR_D,0); //bad
-    } else if (j == 2){ 
-      //system choose sissors
-      render(CHAR_R,CHAR_O,CHAR_5,CHAR_I,1); //ro:Si
-      _delay_ms(2000);
-      render(CHAR_G,CHAR_O,CHAR_O,CHAR_D,0); //good
-    }
-  }else if(i == 1){
-    //user choose paper
-    if (j == 0){
-      //system choose rock
-      render(CHAR_P,CHAR_A,CHAR_R,CHAR_O,1); //PA:ro
-      _delay_ms(2000);
-      render(CHAR_G,CHAR_O,CHAR_O,CHAR_D,0); //good
-    } else if (j == 1){
-      //system choose paper
-      render(CHAR_P,CHAR_A,CHAR_P,CHAR_A,1); //PA:PA
-      _delay_ms(2000);
-      render(CHAR_SPC,CHAR_T,CHAR_I,CHAR_E,0); //tie
-    } else if (j == 2){ 
-      //system choose sissors
-      render(CHAR_P,CHAR_A,CHAR_5,CHAR_I,1); //PA:Si
-      _delay_ms(2000);
-      render(CHAR_SPC,CHAR_B,CHAR_A,CHAR_D,0); //bad
-    }
-  }else if(i == 2){
-    //user choose sissors
-    if (j == 0){
-      //system choose rock
-      render(CHAR_5,CHAR_I,CHAR_R,CHAR_O,1); //Si:ro
-      _delay_ms(2000);
-      render(CHAR_SPC,CHAR_B,CHAR_A,CHAR_D,0); //bad
-    } else if (j == 1){
-      //system choose paper
-      render(CHAR_5,CHAR_I,CHAR_P,CHAR_A,1); //Si:PA
-      _delay_ms(2000);
-      render(CHAR_G,CHAR_O,CHAR_O,CHAR_D,0); //good
-    } else if (j == 2){
-      //system choose sissors
-      render(CHAR_5,CHAR_I,CHAR_5,CHAR_I,1); //Si:Si
-      _delay_ms(2000);
-      render(CHAR_SPC,CHAR_T,CHAR_I,CHAR_E,0); //tie
-    }
-  }
-  _delay_ms(2000);
-}
+/*
+ *
+ * MAIN FUNCTION
+ *
+ */
 
 int main (void){
   uint8_t i,j,k = 0;
@@ -342,10 +94,7 @@ int main (void){
     //menu options
     switch(op){
       case 0:
-        render(CHAR_SPC,CHAR_O,CHAR_F,CHAR_F,0);
-        _delay_ms(500);
-        TM1637_init(0,0); //disabled and brightness 0
-        sleep_mode();
+          power_off();
         return 0;
       case 1:  //Addition
         render(CHAR_SPC,CHAR_A,CHAR_D,CHAR_D,0);
@@ -488,3 +237,298 @@ int main (void){
     }
   }
 }
+
+/*
+ * 
+ *   RENDER FUNCTIONS
+ *
+ */
+
+void render(uint8_t a, uint8_t b,  uint8_t c,  uint8_t d, uint8_t p ){
+  TM1637_display_segments(0,a);
+  if(p==0)
+    TM1637_display_segments(1,b&~0x80);
+  else
+    TM1637_display_segments(1,b|0x80);
+  TM1637_display_segments(2,c);
+  TM1637_display_segments(3,d);
+}
+
+void print_rps(uint8_t i, uint8_t j){
+  //Print the rock paper sissors result
+  if(i == 0){
+    // user choose rock
+    if (j == 0){
+      //system choose rock
+      render(CHAR_R,CHAR_O,CHAR_R,CHAR_O,1); //ro:ro
+      _delay_ms(2000);
+      render(CHAR_SPC,CHAR_T,CHAR_I,CHAR_E,0); //tie
+    } else if (j == 1){
+      //system choose paper
+      render(CHAR_R,CHAR_O,CHAR_P,CHAR_A,1); //ro:PA
+      _delay_ms(2000);
+      render(CHAR_SPC,CHAR_B,CHAR_A,CHAR_D,0); //bad
+    } else if (j == 2){ 
+      //system choose sissors
+      render(CHAR_R,CHAR_O,CHAR_5,CHAR_I,1); //ro:Si
+      _delay_ms(2000);
+      render(CHAR_G,CHAR_O,CHAR_O,CHAR_D,0); //good
+    }
+  }else if(i == 1){
+    //user choose paper
+    if (j == 0){
+      //system choose rock
+      render(CHAR_P,CHAR_A,CHAR_R,CHAR_O,1); //PA:ro
+      _delay_ms(2000);
+      render(CHAR_G,CHAR_O,CHAR_O,CHAR_D,0); //good
+    } else if (j == 1){
+      //system choose paper
+      render(CHAR_P,CHAR_A,CHAR_P,CHAR_A,1); //PA:PA
+      _delay_ms(2000);
+      render(CHAR_SPC,CHAR_T,CHAR_I,CHAR_E,0); //tie
+    } else if (j == 2){ 
+      //system choose sissors
+      render(CHAR_P,CHAR_A,CHAR_5,CHAR_I,1); //PA:Si
+      _delay_ms(2000);
+      render(CHAR_SPC,CHAR_B,CHAR_A,CHAR_D,0); //bad
+    }
+  }else if(i == 2){
+    //user choose sissors
+    if (j == 0){
+      //system choose rock
+      render(CHAR_5,CHAR_I,CHAR_R,CHAR_O,1); //Si:ro
+      _delay_ms(2000);
+      render(CHAR_SPC,CHAR_B,CHAR_A,CHAR_D,0); //bad
+    } else if (j == 1){
+      //system choose paper
+      render(CHAR_5,CHAR_I,CHAR_P,CHAR_A,1); //Si:PA
+      _delay_ms(2000);
+      render(CHAR_G,CHAR_O,CHAR_O,CHAR_D,0); //good
+    } else if (j == 2){
+      //system choose sissors
+      render(CHAR_5,CHAR_I,CHAR_5,CHAR_I,1); //Si:Si
+      _delay_ms(2000);
+      render(CHAR_SPC,CHAR_T,CHAR_I,CHAR_E,0); //tie
+    }
+  }
+  _delay_ms(2000);
+}
+
+uint8_t byte_hi(uint8_t hex){
+  return hex>>4;
+}
+
+uint8_t byte_lo(uint8_t hex){
+  return hex&0xf;
+}
+
+
+
+/*
+ *
+ * INPUT FUNCTIONS
+ *
+ */
+
+uint8_t read_button(uint8_t mode){
+  //modes:
+  //  0: return only after a key is pressed
+  //  1: return after a change
+  //r:read
+  uint8_t r = 0x00;
+  //infinite loop until read a value
+  while(1){
+    //get the pin values isolated
+    // B00011100 = 0x1C
+    // the ones idicates PB2,PB3 and PB4
+    //then shift it 2 spaces
+    r = (PINB & 0x1C) >> 2;
+    //this will leave on r 00000ZYX where x is PB2, y is PB3, and z is PB4
+    //whit this r will be:
+    //0x00 = all button pressed
+    //0x07 = no button pressed
+    //0x05 = a button pressed
+    //0x03 = b button pressed
+    //0x06 = c button pressed
+    //0x01 = ab buttons pressed
+    //0x04 = ac buttons pressed
+    //0x02 = bc buttons pressed
+    switch (r){
+      case 0x5: //a button
+        return 0;
+      case 0x3: //b button
+        return 1;
+      case 0x6: //c button
+        return 2;
+      case 0x7: //no button pressed
+        if(mode==1) return 3;
+        break;
+      default:
+        if(mode==1) return 4;
+        break;
+    }
+  }
+}
+
+uint8_t read_input(uint8_t limit,uint8_t a, uint8_t b){
+  //r:read  pr:previous_r
+  uint8_t r,pr = 0x7;
+  //op:selected_option
+  uint8_t op = 0x00;
+
+  while(1){
+    r = read_button(1); //mode 1, return always 
+    if(r != pr){
+      pr = r;
+      switch (r){
+        case 0: //x button
+          if(op<=0) op=limit;
+          else op--;
+          break;
+        case 2: //z button
+          if(op>=limit) op=0x0;
+          else op++;
+          break;
+        case 1: //y button
+          return op;
+      }
+    }
+    render(a,b,number[byte_hi(op)],number[byte_lo(op)],1);
+  }
+}
+
+uint8_t get_move(){
+  //r:read  pr:previous_r
+  uint8_t r,pr = 0x7;
+  //op:selected_option
+  uint8_t op = 0x00;
+
+  while(1){
+    r = read_button(1); //mode 1, return always 
+    if(r != pr){
+      pr = r;
+      switch (r){
+        case 0:
+          if(op<=0) op=2;
+          else op--;
+          break;
+        case 2:
+          if(op>=2) op=0x0;
+          else op++;
+          break;
+        case 1:
+          return op;
+      }
+    }
+    switch(op){
+      case 0:
+        render(CHAR_R,CHAR_O,CHAR_DASH,CHAR_DASH,1);
+        break;
+      case 1:
+        render(CHAR_P,CHAR_A,CHAR_DASH,CHAR_DASH,1);
+        break;
+      case 2:
+        render(CHAR_5,CHAR_I,CHAR_DASH,CHAR_DASH,1);
+        break;
+    }
+  }
+}
+
+uint8_t get_dice(){
+  //r:read  pr:previous_r
+  uint8_t r,pr = 0x7;
+  //op:selected_option
+  uint8_t op = 0x06;
+
+  while(1){
+    r = read_button(1); //mode 1, return always 
+    if(r != pr){
+      pr = r;
+      switch (r){
+        case 0:
+          if(op<=0) op=6;
+          else op--;
+          break;
+        case 2:
+          if(op>=6) op=0x0;
+          else op++;
+          break;
+        case 1:
+          return op;
+      }
+    }
+    switch(op){
+      case 0:
+        render(CHAR_SPC,CHAR_SPC,CHAR_D,CHAR_4,0);
+        break;
+      case 1:
+        render(CHAR_SPC,CHAR_SPC,CHAR_D,CHAR_6,0);
+        break;
+      case 2:
+        render(CHAR_SPC,CHAR_SPC,CHAR_D,CHAR_8,0);
+        break;
+      case 3:
+        render(CHAR_SPC,CHAR_D,CHAR_1,CHAR_0,0);
+        break;
+      case 4:
+        render(CHAR_SPC,CHAR_D,CHAR_1,CHAR_2,0);
+        break;
+      case 5:
+        render(CHAR_SPC,CHAR_D,CHAR_2,CHAR_0,0);
+        break;
+      case 6:
+        render(CHAR_D,CHAR_1,CHAR_0,CHAR_0,0);
+        break;
+    }
+  }
+}
+
+/*
+ *
+ *  PROCESS FUNCTIONS
+ *
+ */
+
+void power_off(){
+  render(CHAR_SPC,CHAR_O,CHAR_F,CHAR_F,0);
+  _delay_ms(500);
+  //disabled screen and set brightness to 0
+  TM1637_init(0,0);
+  sleep_mode();
+}
+
+uint16_t roll_random(){
+  //r:read
+  uint8_t a,b,r = 3;
+  uint16_t result = 0x0000;
+  //roll several random numbers while the button is pressed
+  render(CHAR_R,CHAR_O,CHAR_L,CHAR_L,0);
+  _delay_ms(500);
+  //whain until any button is pressed
+  while(r == 3){
+    r = read_button(1); //mode 1, return allways
+  }
+  //roll while any button is still pressed
+  while(r != 3){
+    r = read_button(1); //mode 1, return allways
+    result = random();
+    b = (a/12)%12;
+    if (b == 0) render(0,0,0,LINE_UR,0);
+    if (b == 1) render(0,0,0,LINE_DR,0);
+    if (b == 2) render(0,0,0,LINE_D,0);
+    if (b == 3) render(0,0,LINE_D,0,0);
+    if (b == 4) render(0,LINE_D,0,0,0);
+    if (b == 5) render(LINE_D,0,0,0,0);
+    if (b == 6) render(LINE_DL,0,0,0,0);
+    if (b == 7) render(LINE_UL,0,0,0,0);
+    if (b == 8) render(LINE_U,0,0,0,0);
+    if (b == 9) render(0,LINE_U,0,0,0);
+    if (b == 10) render(0,0,LINE_U,0,0);
+    if (b == 11) render(0,0,0,LINE_U,0);
+    a++;
+    if (a >= 144) a = 0;
+  }
+  return result;
+}
+
+
