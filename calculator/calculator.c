@@ -49,7 +49,11 @@ uint8_t read_input(uint8_t limit,uint8_t a, uint8_t b);
 uint8_t get_move();
 uint8_t get_dice();
 void power_off();
+void hex_add();
 uint16_t roll_random();
+void check_dice(uint8_t dice, uint16_t roll);
+void tally_counter();
+void led_settings();
 
 /*
  *
@@ -66,7 +70,7 @@ int main (void){
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 
   // Setup display: enable (1: on, 0: off), brightness (0..7)
-  i = eeprom_read_byte((const uint8_t *) (0x02));
+  i = eeprom_read_byte((const uint8_t *) (0x0002));
   i = i<8?i:0; //ensure that i is less than 8
   TM1637_init(1,i);
 
@@ -97,16 +101,7 @@ int main (void){
           power_off();
         return 0;
       case 1:  //Addition
-        render(CHAR_SPC,CHAR_A,CHAR_D,CHAR_D,0);
-        _delay_ms(500);
-        i = read_input(0x7f,CHAR_N,CHAR_1);
-        render(CHAR_DASH,CHAR_DASH,CHAR_DASH,CHAR_DASH,0);
-        _delay_ms(500);
-        j = read_input(0x7f,CHAR_N,CHAR_2);
-        render(CHAR_DASH,CHAR_DASH,CHAR_DASH,CHAR_DASH,0);
-        _delay_ms(500);
-        render(CHAR_R,CHAR_E,byte_hi(i+j),byte_lo(i+j),1);
-        _delay_ms(2000);
+          hex_add();
         break;
       case 2: //Rock Paper Sissor
         render(CHAR_P,CHAR_L,CHAR_A,CHAR_Y,0);
@@ -120,84 +115,13 @@ int main (void){
         _delay_ms(500);
         i = get_dice();
         x = roll_random();
-        switch(i){
-          case 0:
-            j = (x % 4)+1;
-            break;
-          case 1:
-            j = (x % 6)+1;
-            break;
-          case 2:
-            j = (x % 8)+1;
-            break;
-          case 3:
-            j = (x % 10)+1;
-            break;
-          case 4:
-            j = (x % 12)+1;
-            break;
-          case 5:
-            j = (x % 20)+1;
-            break;
-          case 6:
-            j = (x % 100);
-            break;
-          }
-        i = j % 10;
-        j = (j / 10) % 10;
-        i = number[i];
-        j = j == 0 ? CHAR_SPC : number[j];
-        render(CHAR_SPC,CHAR_SPC,j,i,0);
-        _delay_ms(2000);
+        check_dice(i,x);
         break;
       case 4:
-        render(CHAR_T,CHAR_A,CHAR_L,CHAR_Y,0);
-        _delay_ms(500);
-        i = 0;
-        while(1){
-          render( number[(i / 1000) % 10], number[(i / 100) % 10] , number[(i / 10) % 10 ], number[i % 10] ,0);
-          j = read_button(0); //mode 0, wait for push
-          switch(j){
-            case 0:
-              if (i>0) i--;
-              break;
-            case 1:
-              if (i<9999) i++;
-              break;
-            case 2:
-              i = 0;
-            break;
-          }
-          //wait until no key is pressed
-          while(read_button(1)!=3);
-        }
+        tally_counter();
         break;
       case 5:
-        render(CHAR_L,CHAR_E,CHAR_D,CHAR_SPC,0);
-        _delay_ms(500);
-        while(1){
-          TM1637_init(1,i); //enabled and brightness i
-          render(CHAR_L,CHAR_D,number[0],number[i],0);
-          j = read_button(0); //mode 0, wait for push
-          switch(j){
-            case 0:
-              if (i>0) i--;
-              break;
-            case 1:
-              render(CHAR_5,CHAR_T,CHAR_O,CHAR_R,1);
-              _delay_ms(500);
-              eeprom_update_byte((uint8_t *) (0x02),i);
-              eeprom_busy_wait();
-              render(CHAR_D,CHAR_O,CHAR_N,CHAR_E,0);
-              _delay_ms(500);
-              break;
-            case 2:
-              if (i<7) i++;
-            break;
-          }
-          //wait until no key is pressed
-          while(read_button(1)!=3);
-        }
+        led_settings();
         break;
       case 6:
         render(CHAR_E,CHAR_D,CHAR_I,CHAR_T,0);
@@ -497,6 +421,21 @@ void power_off(){
   sleep_mode();
 }
 
+void hex_add(){
+  uint8_t i = 0;
+  uint8_t j = 0;
+  render(CHAR_SPC,CHAR_A,CHAR_D,CHAR_D,0);
+  _delay_ms(500);
+  i = read_input(0x7f,CHAR_N,CHAR_1);
+  render(CHAR_DASH,CHAR_DASH,CHAR_DASH,CHAR_DASH,0);
+  _delay_ms(500);
+  j = read_input(0x7f,CHAR_N,CHAR_2);
+  render(CHAR_DASH,CHAR_DASH,CHAR_DASH,CHAR_DASH,0);
+  _delay_ms(500);
+  render(CHAR_R,CHAR_E,byte_hi(i+j),byte_lo(i+j),1);
+  _delay_ms(2000);
+}
+
 uint16_t roll_random(){
   //r:read
   uint8_t a,b,r = 3;
@@ -529,6 +468,97 @@ uint16_t roll_random(){
     if (a >= 144) a = 0;
   }
   return result;
+}
+
+
+void check_dice(uint8_t dice, uint16_t roll){
+  uint8_t i = 0;
+  uint8_t j = 0;
+  uint8_t result = 0;
+  switch(dice){
+    case 0:
+      result = (roll % 4)+1;
+      break;
+    case 1:
+      result = (roll % 6)+1;
+      break;
+    case 2:
+      result = (roll % 8)+1;
+      break;
+    case 3:
+      result = (roll % 10)+1;
+      break;
+    case 4:
+      result = (roll % 12)+1;
+      break;
+    case 5:
+      result = (roll % 20)+1;
+      break;
+    case 6:
+      result = (roll % 100);
+      break;
+    }
+  i = result % 10;
+  i = number[i];
+  j = (result / 10) % 10;
+  j = j == 0 ? CHAR_SPC : number[j];
+  render(CHAR_SPC,CHAR_SPC,j,i,0);
+  _delay_ms(2000);
+}
+
+void tally_counter(){
+  uint8_t i = 0;
+  uint8_t j = 0;
+  render(CHAR_T,CHAR_A,CHAR_L,CHAR_Y,0);
+  _delay_ms(500);
+  i = 0;
+  while(1){
+    render( number[(i / 1000) % 10], number[(i / 100) % 10] , number[(i / 10) % 10 ], number[i % 10] ,0);
+    j = read_button(0); //mode 0, wait for push
+    switch(j){
+      case 0:
+        if (i>0) i--;
+        break;
+      case 1:
+        if (i<9999) i++;
+        break;
+      case 2:
+        i = 0;
+      break;
+    }
+    //wait until no key is pressed
+    while(read_button(1)!=3);
+  }
+}
+
+void led_settings(){
+  uint8_t i = 0;
+  uint8_t j = 0;
+  render(CHAR_L,CHAR_E,CHAR_D,CHAR_SPC,0);
+  _delay_ms(500);
+  while(1){
+    TM1637_init(1,i); //enabled and brightness i
+    render(CHAR_L,CHAR_D,number[0],number[i],0);
+    j = read_button(0); //mode 0, wait for push
+    switch(j){
+      case 0:
+        if (i>0) i--;
+        break;
+      case 1:
+        render(CHAR_5,CHAR_T,CHAR_O,CHAR_R,1);
+        _delay_ms(500);
+        eeprom_update_byte((uint8_t *) (0x02),i);
+        eeprom_busy_wait();
+        render(CHAR_D,CHAR_O,CHAR_N,CHAR_E,0);
+        _delay_ms(500);
+        break;
+      case 2:
+        if (i<7) i++;
+      break;
+    }
+    //wait until no key is pressed
+    while(read_button(1)!=3);
+  }
 }
 
 
