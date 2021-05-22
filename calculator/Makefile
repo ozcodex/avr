@@ -6,7 +6,9 @@ PROGRAMMER=stk500v1
 TARGET=calculator
 SOURCES=calculator.c lib/tm1637.c lib/random.c
 
-all: clean compile upload clean
+all: compile upload clean
+
+check: compile clean
 
 compile: $(SOURCES)
 	avr-gcc -Os -DF_CPU=$(CPUCLOCK) -mmcu=$(CHIP) -I. -o $(TARGET).o $(SOURCES)
@@ -17,6 +19,7 @@ clean:
 	rm -f *.o
 	rm -f *.elf
 	rm -f *.hex
+	rm -f *.out
 
 upload: $(TARGET).hex
 	sudo avrdude -c $(PROGRAMMER) -p $(CHIP) -P$(PORT) -b $(BAUDS) -U flash:w:$(TARGET).hex
