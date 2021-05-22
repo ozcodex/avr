@@ -316,7 +316,7 @@ int main (void){
   // Setup display: enable (1: on, 0: off), brightness (0..7)
   i = eeprom_read_byte((const uint8_t *) (0x02));
   i = i<8?i:0; //ensure that i is less than 8
-  TM1637_init(1,0);
+  TM1637_init(1,i);
 
   // Setup random number generator
   
@@ -428,19 +428,22 @@ int main (void){
         _delay_ms(500);
         while(1){
           TM1637_init(1,i); //enabled and brightness i
+          render(CHAR_L,CHAR_D,number[0],number[i],0);
           j = read_button(0); //mode 0, wait for push
           switch(j){
             case 0:
               if (i>0) i--;
               break;
             case 1:
-              render(CHAR_5,CHAR_T,CHAR_O,CHAR_R,0);
+              render(CHAR_5,CHAR_T,CHAR_O,CHAR_R,1);
               _delay_ms(500);
               eeprom_update_byte((uint8_t *) (0x02),i);
               eeprom_busy_wait();
+              render(CHAR_D,CHAR_O,CHAR_N,CHAR_E,0);
+              _delay_ms(500);
               break;
             case 2:
-              if (i<8) i++;
+              if (i<7) i++;
             break;
           }
           //wait until no key is pressed
@@ -465,6 +468,8 @@ int main (void){
               _delay_ms(500);
               eeprom_update_byte((uint8_t *) (x),i);
               eeprom_busy_wait();
+              render(CHAR_D,CHAR_O,CHAR_N,CHAR_E,0);
+              _delay_ms(500);
               break;
             case 2:
               if (x<0xff) x+= 1;
