@@ -455,7 +455,7 @@ int main (void){
         _delay_ms(500);
         x = 0;
         while(1){
-          k = eeprom_read_byte((uint8_t *)(x) );
+          k = eeprom_read_byte((uint8_t *)(0x0100 + x) );
           render( number[byte_hi(x)], number[byte_lo(x)] , number[byte_hi(k) ], number[byte_lo(k)] ,1);
           j = read_button(0); //mode 0, wait for push
           switch(j){
@@ -468,7 +468,7 @@ int main (void){
               i = read_input(0xff, CHAR_U, CHAR_P ) ;
               render(CHAR_5,CHAR_T,CHAR_O,CHAR_R,0);
               _delay_ms(500);
-              eeprom_update_byte((uint8_t *) (x),i);
+              eeprom_update_byte((uint8_t *) (0x0100 + x),i);
               eeprom_busy_wait();
               render(CHAR_D,CHAR_O,CHAR_N,CHAR_E,0);
               _delay_ms(500);
