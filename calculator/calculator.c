@@ -54,6 +54,7 @@ uint16_t roll_random();
 void check_dice(uint8_t dice, uint16_t roll);
 void tally_counter();
 void led_settings();
+void edit_eeprom(uint16_t init, uint16_t end);
 
 /*
  *
@@ -124,35 +125,7 @@ int main (void){
         led_settings();
         break;
       case 6:
-        render(CHAR_E,CHAR_D,CHAR_I,CHAR_T,0);
-        _delay_ms(500);
-        x = 0;
-        while(1){
-          k = eeprom_read_byte((uint8_t *)(0x0100 + x) );
-          render( number[byte_hi(x)], number[byte_lo(x)] , number[byte_hi(k) ], number[byte_lo(k)] ,1);
-          j = read_button(0); //mode 0, wait for push
-          switch(j){
-            case 0:
-              if (x>0) x-= 1;
-              break;
-            case 1:
-              //wait until no key is pressed
-              while(read_button(1)!=3);
-              i = read_input(0xff, CHAR_U, CHAR_P ) ;
-              render(CHAR_5,CHAR_T,CHAR_O,CHAR_R,0);
-              _delay_ms(500);
-              eeprom_update_byte((uint8_t *) (0x0100 + x),i);
-              eeprom_busy_wait();
-              render(CHAR_D,CHAR_O,CHAR_N,CHAR_E,0);
-              _delay_ms(500);
-              break;
-            case 2:
-              if (x<0xff) x+= 1;
-              break;
-          }
-          //wait until no key is pressed
-          while(read_button(1)!=3);
-        }
+        edit_eeprom(0x0100,0x01FF);
         break;
       default:
         render(CHAR_SPC,CHAR_E,CHAR_R,CHAR_R,0);
@@ -561,4 +534,40 @@ void led_settings(){
   }
 }
 
-
+void edit_eeprom(uint16_t init, uint16_t end){
+  uint8_t i = 0;
+  uint8_t j = 0;
+  uint8_t k = 0;
+  uint16_t x = 0;
+  if (end - init > 0xFF){
+    return;
+  }
+  render(CHAR_E,CHAR_D,CHAR_I,CHAR_T,0);
+  _delay_ms(500);
+  while(1){
+    k = eeprom_read_byte((uint8_t *)(init + x) );
+    render( number[byte_hi(x)], number[byte_lo(x)] , number[byte_hi(k) ], number[byte_lo(k)] ,1);
+    j = read_button(0); //mode 0, wait for push
+    switch(j){
+      case 0:
+        if (x>0) x-= 1;
+        break;
+      case 1:
+        //wait until no key is pressed
+        while(read_button(1)!=3);
+        i = read_input(0xff, CHAR_U, CHAR_P ) ;
+        render(CHAR_5,CHAR_T,CHAR_O,CHAR_R,0);
+        _delay_ms(500);
+        eeprom_update_byte((uint8_t *) (init + x),i);
+        eeprom_busy_wait();
+        render(CHAR_D,CHAR_O,CHAR_N,CHAR_E,0);
+        _delay_ms(500);
+        break;
+      case 2:
+        if ((init + x) < end) x+= 1;
+        break;
+    }
+    //wait until no key is pressed
+    while(read_button(1)!=3);
+  }
+}
