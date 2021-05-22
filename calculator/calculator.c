@@ -463,6 +463,8 @@ int main (void){
               if (x>0) x-= 1;
               break;
             case 1:
+              //wait until no key is pressed
+              while(read_button(1)!=3);
               i = read_input(0xff, CHAR_U, CHAR_P ) ;
               render(CHAR_5,CHAR_T,CHAR_O,CHAR_R,0);
               _delay_ms(500);
