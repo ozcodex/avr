@@ -45,7 +45,7 @@ slow procces and shouldn't be interrupted.
 A random seed is stored in the first two bytes (0x00 and 0x01) of the EEPROM,
 after each reset or turn on, a new seed is generated.
 
-Trere are also a file called check rolls (and script in c) and dice rolls (a
+Trere are also a tool called check rolls (and script in c) and dice rolls (a
 text file) that are used to check the randomness of the dice throws of the 
 device, in the text file are a lot of d100 rolls, and the script takes those
 numbers to give a statistical ond frecuency analysis of the throws.
