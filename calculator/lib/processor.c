@@ -96,7 +96,7 @@ static void _execute_op5(uint8_t instruction, uint8_t argument){
       next_instruction = parsed_argument;
       break;
     case 0x14: //IN
-      //TODO
+      flags = 0x20; //sets the input flag to 1
       break;
     default:
       error = E_OP_UNDEF;
@@ -109,12 +109,20 @@ uint8_t get_next_instruction(){
   return next_instruction;
 }
 
+uint8_t get_input_flag(){
+  return (flags & 0x02);
+}
+
 uint8_t check_params(uint8_t instruction){
   //take the two LSB bytes of the instruction
   if( (instruction>>6)&0x03 == 0 ) return 0; //take no arguments
   else return 1; //it takes arguments
 }
 
+uint8_t write_input_data(uint8_t data){
+  registers[3] = data;
+  flags = 0x00; //reset the flags
+}
 uint8_t execute(uint8_t instruction, uint8_t argument){
   next_instruction++;
   error = E_NO_ERROR;

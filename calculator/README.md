@@ -50,7 +50,32 @@ text file) that are used to check the randomness of the dice throws of the
 device, in the text file are a lot of d100 rolls, and the script takes those
 numbers to give a statistical ond frecuency analysis of the throws.
 
-#Commands
+#Programmable Device
+Through the eDIt and run options code can be writed to the EEPROM, and be
+executed.
+
+###Registers
+The system will have 4 registers:
+
+- A: Arithmetic Operations
+- B: Binary Operations
+- C: Counter
+- D: Data
+
+###Flags
+The system will have sowe flags in a byte organized in the next order:
+
+xxIOSCZE
+
+E: Equal
+Z: Zero
+C: Carry
+S: Sign
+O: Overflow
+I: Input (sys)
+
+
+##Commands
 The programming commands are hex codes that represents a binary number. It has
 this structure:
 
@@ -65,18 +90,6 @@ number, op5 didn't have a register number and use all the next bits as op code.
 - 222 op3 codes
 - 22233 op5 codes
 - 33 if op3 this bits indicates the regiter that this operation uses.
-
-###Flags
-The system will have sowe flags in a byte organized in the next order:
-
-xxxOSCZE
-
-E: Equal
-Z: Zero
-C: Carry
-S: Sign
-O: Overflow
-
 ###Op3 Codes
 
 ####ST - Store
@@ -179,7 +192,7 @@ in A the result and writes the flags.
 ####NOT - NEGATION
 00 0 00111 (NOT) 0x07
 
-Inverts all the bits in the register A.
+Inverts all the bits in the register B.
 
 ####AND, OR, XOR
 10 0 01000 Register (AND B)     0x88
@@ -189,7 +202,7 @@ Inverts all the bits in the register A.
 10 0 01010 Register (XOR B)     0x8A
 11 0 01010 Constant (XOR const) 0xCA
 
-Applies the logic gate to the register A with the given value (register or
+Applies the logic gate to the register B with the given value (register or
 constant) and changes the flags.
 
 ####JMP - UNCONDITIONAL JUMP
@@ -214,16 +227,11 @@ Checks the flags and only jump if the given conditions matchs.
 - JB: Jumps Below
 - JBE: Jumps Below or Equal
 
-####WTM, WTS - WAIT
-11 0 01110 Constant (WTM const) 0xCE
-11 0 01111 Constant (WTS const) 0xCF
-
-Wait the given amount of time, milliseconds for WTM and seconds for WTS.
-
 ####IN - INPUT
 00 0 10100 (IN) 0x14
 
-Reads an hex input and writes it to the register D.
+Sets the input flag to 1, so the S.O. can identify the need to read and input.
+the readed value will be stored in the register D.
 
 ####PNT - PRINT
 01 0 10101 (PNT 0, addr)  0x55
