@@ -30,8 +30,8 @@ decreases the counter, and the right button resets it to zero.
 0x02 register, when finish writing shows done (donE) on the screen.
 
 - 06: (EdIt) Read and shows the content of the second block of the EEPROM (the
-registers from 0x0100 to 0x01FF) in the format AA:BB where AA is the MSB of the
-address and BB is the content of the eeprom, with the central button the 
+registers from 0x0100 to 0x01FF) in the format AA:BB where AA is the lasd bits 
+of the address and BB is the content of the eeprom, with the central button the 
 content of that position can be changed
 
 - 07 (rUn) Execute the program defined through the EdIt command. see below for
@@ -65,6 +65,17 @@ number, op5 didn't have a register number and use all the next bits as op code.
 - 222 op3 codes
 - 22233 op5 codes
 - 33 if op3 this bits indicates the regiter that this operation uses.
+
+###Flags
+The system will have sowe flags in a byte organized in the next order:
+
+xxxOSCZE
+
+E: Equal
+Z: Zero
+C: Carry
+S: Sign
+O: Overflow
 
 ###Op3 Codes
 
@@ -168,7 +179,7 @@ in A the result and writes the flags.
 ####NOT - NEGATION
 00 0 00111 (NOT) 0x07
 
-Inverts all the bits in the rugister A.
+Inverts all the bits in the register A.
 
 ####AND, OR, XOR
 10 0 01000 Register (AND B)     0x88
@@ -178,7 +189,7 @@ Inverts all the bits in the rugister A.
 10 0 01010 Register (XOR B)     0x8A
 11 0 01010 Constant (XOR const) 0xCA
 
-Applies the logic gate to the rugister A with the given value (register or
+Applies the logic gate to the register A with the given value (register or
 constant) and changes the flags.
 
 ####JMP - UNCONDITIONAL JUMP
@@ -224,10 +235,10 @@ Print the value in the address or the constant as hexadecimal to a pair of
 digits in the screen, being 0 the two right most digits.
 
 ####OUT - OUTPUT
-11 0 10000 Constant (OUT 0, const) 0xD0
-11 0 10001 Constant (OUT 1, const) 0xD1
-11 0 10010 Constant (OUT 2, const) 0xD2
-11 0 10011 Constant (OUT 3, const) 0xD3
+11 0 11000 Constant (OUT 0, const) 0xD8
+11 0 11001 Constant (OUT 1, const) 0xD9
+11 0 11010 Constant (OUT 2, const) 0xDA
+11 0 11011 Constant (OUT 3, const) 0xDB
 
 Writes the raw value to the given digit in the screen, being 0 the right most
 digit.

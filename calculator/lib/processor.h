@@ -8,6 +8,7 @@
 #define E_NO_ERROR 0x00
 #define E_UNDEF_ERROR 0x01
 #define E_SEG_FAULT 0x01
+#define E_OP_UNDEF 0x01
 
 //get the address of the next instruction
 uint8_t get_next_instruction();
