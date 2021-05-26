@@ -1,9 +1,11 @@
+#include <stdint.h>
 #include "processor.h"
 
 //the 4 registers (ABCD)
 static uint8_t registers[4] = {0};
 static uint8_t stack[MAX_STACK] = {0};
 static uint8_t ram[MAX_RAM] = {0};
+static uint8_t output[OUTPUT_BYTES] = {0};
 
 static uint8_t next_instruction = 0x00;
 static uint8_t flags = 0x00;
@@ -38,11 +40,13 @@ static void _execute_op3(uint8_t instruction, uint8_t argument){
   //Choose the matching action!
   switch((instruction>>2)&0x07){
     case 0x00: //STORE
-    case 0x02: //MOVE
       registers[selected_register] = parsed_argument;
       break;
     case 0x01: //LOAD
       ram[argument] = registers[selected_register];
+      break;
+    case 0x02: //MOVE
+      registers[selected_register] = ram[parsed_argument];
       break;
     case 0x03: //INCREMENT
       registers[selected_register]++;
@@ -98,6 +102,9 @@ static void _execute_op5(uint8_t instruction, uint8_t argument){
     case 0x14: //IN
       flags = 0x20; //sets the input flag to 1
       break;
+    case 0x18:
+      output[parsed_argument] = registers[0x03]
+      break;
     default:
       error = E_OP_UNDEF;
       break;
@@ -113,6 +120,10 @@ uint8_t get_input_flag(){
   return (flags & 0x02);
 }
 
+uint8_t get_output(uint8_t position){
+  return (output[position]);
+}
+
 uint8_t check_params(uint8_t instruction){
   //take the two LSB bytes of the instruction
   if( (instruction>>6)&0x03 == 0 ) return 0; //take no arguments
@@ -123,8 +134,9 @@ uint8_t write_input_data(uint8_t data){
   registers[3] = data;
   flags = 0x00; //reset the flags
 }
+
 uint8_t execute(uint8_t instruction, uint8_t argument){
-  next_instruction++;
+  next_instruction+=check_params(instruction)?2:1;
   error = E_NO_ERROR;
   if( (instruction>>5)&0x01 == 0 ){  //op3
     _execute_op3(instruction,argument);

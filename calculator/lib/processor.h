@@ -3,6 +3,7 @@
 
 #define MAX_STACK 16
 #define MAX_RAM 16
+#define OUTPUT_BYTES 4
 
 //ERROR CODES
 #define E_NO_ERROR 0x00

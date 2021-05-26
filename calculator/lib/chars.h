@@ -30,6 +30,7 @@
 #define CHAR_Y     0x6E
 #define CHAR_V     0x3E
 #define CHAR_U     0x1C
+#define CHAR_H     0x76
 
 #define LINE_U     0x01
 #define LINE_UR    0x02

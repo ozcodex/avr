@@ -114,14 +114,13 @@ destination register.
 Copy the content of the source register in the destination address.
 
 ####MOV - MOVE
-10 1 010 00 Register (MOV A,D) 0xA8
-10 1 010 01 Register (MOV B,C) 0xA9
-10 1 010 10 Register (MOV C,B) 0xAA
-10 1 010 11 Register (MOV D,A) 0xAB
+10 1 010 00 Register (MOV A,[D]) 0xA8
+10 1 010 01 Register (MOV B,[C]) 0xA9
+10 1 010 10 Register (MOV C,[B]) 0xAA
+10 1 010 11 Register (MOV D,[A]) 0xAB
 
-Copy the content of the source register (the second parameter) into the 
-destination register (the first one).
-This is the only operation that moves data from a register to other.
+Copy the content of the address writed in the second register to the first
+register.
 
 ####INC - INCREMENT
 00 1 011 00 (INC A) 0x2C
@@ -243,13 +242,11 @@ Print the value in the address or the constant as hexadecimal to a pair of
 digits in the screen, being 0 the two right most digits.
 
 ####OUT - OUTPUT
-11 0 11000 Constant (OUT 0, const) 0xD8
-11 0 11001 Constant (OUT 1, const) 0xD9
-11 0 11010 Constant (OUT 2, const) 0xDA
-11 0 11011 Constant (OUT 3, const) 0xDB
+01 0 11000 Address (OUT [addr]) 0x58
+10 0 11000 Register (OUT A)     0x98
+11 0 11000 Constant (OUT const) 0xD8
 
-Writes the raw value to the given digit in the screen, being 0 the right most
-digit.
+Writes the value in the register D to the given position on the display.
 
 
 
