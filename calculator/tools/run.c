@@ -81,7 +81,6 @@ int main(){
       result = execute(code[inst],code[inst+1]);
     }else{
       printf("%2x\n",code[inst]);
-      printf("Executing instruction %3x\n",inst);
       result = execute(code[inst],0x00);
     }
     if (result != E_NO_ERROR){

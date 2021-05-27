@@ -139,7 +139,7 @@ uint8_t check_params(uint8_t instruction){
   else return 1; //it takes arguments
 }
 
-uint8_t write_input_data(uint8_t data){
+void write_input_data(uint8_t data){
   registers[3] = data;
   flags = 0x00; //reset the flags
 }

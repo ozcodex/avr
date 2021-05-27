@@ -28,6 +28,6 @@ uint8_t check_params(uint8_t instruction);
 uint8_t execute(uint8_t instruction, uint8_t argument);
 
 //writes the readed data into the Data register
-uint8_t write_input_data(uint8_t data);
+void write_input_data(uint8_t data);
 #endif
 

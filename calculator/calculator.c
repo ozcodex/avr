@@ -5,6 +5,7 @@
 #include "lib/tm1637.h"
 #include "lib/chars.h"
 #include "lib/random.h"
+#include "lib/processor.h"
 
 /*
 The AtTiny85 have this pinout:
@@ -133,6 +134,7 @@ int main (void){
       case 7:
         render(CHAR_R,CHAR_U,CHAR_N,CHAR_SPC,0);
         _delay_ms(500);
+        run(0x0100,0x01FF);
         break;
       case 8:
         clear_eeprom(0x0100, 0x01FF);
@@ -501,7 +503,11 @@ void tally_counter(){
   _delay_ms(500);
   i = 0;
   while(1){
-    render( number[(i / 1000) % 10], number[(i / 100) % 10] , number[(i / 10) % 10 ], number[i % 10] ,0);
+    render( 
+        number[(i / 1000) % 10], 
+        number[(i / 100) % 10], 
+        number[(i / 10) % 10 ], 
+        number[i % 10] ,0);
     j = read_button(0); //mode 0, wait for push
     switch(j){
       case 0:
@@ -561,7 +567,11 @@ void edit_eeprom(uint16_t init, uint16_t end){
   _delay_ms(500);
   while(1){
     k = eeprom_read_byte((uint8_t *)(init + x) );
-    render( number[byte_hi(x)], number[byte_lo(x)] , number[byte_hi(k) ], number[byte_lo(k)] ,1);
+    render( 
+        number[byte_hi(x)], 
+        number[byte_lo(x)], 
+        number[byte_hi(k)], 
+        number[byte_lo(k)], 1);
     j = read_button(0); //mode 0, wait for push
     switch(j){
       case 0:
@@ -588,7 +598,43 @@ void edit_eeprom(uint16_t init, uint16_t end){
 }
 
 void run(uint16_t init, uint16_t end){
+  uint8_t flag = 0;
+  uint8_t input = 0;
+  uint8_t k = 0;
+  uint8_t kp1 = 0;
+  uint8_t res = 0;
+  uint16_t x = 0;
   //TODO: Run the code
+  while(1){ 
+    x = get_next_instruction();
+    k = eeprom_read_byte((uint8_t *)(init + x) );
+    kp1 = eeprom_read_byte((uint8_t *)(init + x + 1) );
+    //check if must stop
+    if (k == 0x00 || init+x > end){
+      _delay_ms(500);
+      render(CHAR_E,CHAR_N,CHAR_D,CHAR_SPC,0);
+      _delay_ms(500);
+      main();
+    }
+    //execute code according to params
+    if(check_params(k))
+      res = execute(k,kp1);
+    else
+      res = execute(k,0x0);
+    //check response
+    if(res != E_NO_ERROR){
+      render(CHAR_E,CHAR_R,CHAR_R,CHAR_SPC,0);
+      _delay_ms(500);
+      main();  
+    }
+    //check if input is required
+    if(get_input_flag()){
+      input = read_input(0xFF,CHAR_I,CHAR_N);
+      write_input_data(input);
+    }
+    //draw the screen
+    render(get_output(0),get_output(1),get_output(2),get_output(3),0);
+  }
 }
 
 void clear_eeprom(uint16_t init, uint16_t end){
