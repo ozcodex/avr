@@ -13,6 +13,9 @@
 #define E_DIV_ZERO 0x01
 
 //get the address of the next instruction
+void init_processor();
+
+//get the address of the next instruction
 uint8_t get_next_instruction();
 
 //reads the input flag to know if input should be readed

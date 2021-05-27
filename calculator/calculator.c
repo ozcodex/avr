@@ -308,11 +308,11 @@ uint8_t read_input(uint8_t limit,uint8_t a, uint8_t b){
       pr = r;
       switch (r){
         case 0: //x button
-          if(op<=0) op=limit;
-          else op--;
+          if(byte_hi(op)>=byte_hi(limit)) op=0+byte_lo(op);
+          else op += 0x10;
           break;
         case 2: //z button
-          if(op>=limit) op=0x0;
+          if(byte_lo(op)>=byte_lo(limit)) op=(0x10*byte_hi(op));
           else op++;
           break;
         case 1: //y button
@@ -605,13 +605,14 @@ void run(uint16_t init, uint16_t end){
   uint8_t res = 0;
   uint16_t x = 0;
   //TODO: Run the code
+  init_processor();
   while(1){ 
     x = get_next_instruction();
     k = eeprom_read_byte((uint8_t *)(init + x) );
     kp1 = eeprom_read_byte((uint8_t *)(init + x + 1) );
     //check if must stop
     if (k == 0x00 || init+x > end){
-      _delay_ms(500);
+      _delay_ms(2000);
       render(CHAR_E,CHAR_N,CHAR_D,CHAR_SPC,0);
       _delay_ms(500);
       main();

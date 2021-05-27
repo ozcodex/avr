@@ -121,6 +121,16 @@ static void _execute_op5(uint8_t instruction, uint8_t argument){
 }
 
 //PUBLIC FUNCTIONS
+void init_processor(){
+  uint8_t i = 0;
+  for(i=0; i<4; i++) registers[i] = 0;
+  for(i=0; i<MAX_STACK; i++) stack[i] = 0;
+  for(i=0; i<MAX_RAM; i++) ram[i] = 0;
+  for(i=0; i<OUTPUT_BYTES; i++) output[i] = 0;
+  next_instruction = 0x00;
+  flags = 0x00;
+}
+
 uint8_t get_next_instruction(){
   return next_instruction;
 }
