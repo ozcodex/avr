@@ -205,7 +205,7 @@ Applies the logic gate to the register B with the given value (register or
 constant) and changes the flags.
 
 ####JMP - UNCONDITIONAL JUMP
-11 0 01011 Label (JMP label) 0xEB
+11 0 01011 Label (JMP label) 0xCB
 
 Unconditionally jumps to the given instruction address (indicated by the 
 label).

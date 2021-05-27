@@ -10,12 +10,16 @@
 #define E_UNDEF_ERROR 0x01
 #define E_SEG_FAULT 0x01
 #define E_OP_UNDEF 0x01
+#define E_DIV_ZERO 0x01
 
 //get the address of the next instruction
 uint8_t get_next_instruction();
 
 //reads the input flag to know if input should be readed
 uint8_t get_input_flag();
+
+//allows to read the input values
+uint8_t get_output(uint8_t position);
 
 //check if the given instruction needs or not a parameter
 uint8_t check_params(uint8_t instruction);
