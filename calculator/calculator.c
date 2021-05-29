@@ -44,10 +44,12 @@ uint8_t number[16] = {
 uint8_t byte_hi(uint8_t hex);
 uint8_t byte_lo(uint8_t hex);
 void render(uint8_t a, uint8_t b,  uint8_t c,  uint8_t d, uint8_t p );
+void print_menu_option(uint8_t op);
 void print_rps(uint8_t i, uint8_t j);
 void print_loading(uint8_t status);
 uint8_t read_button(uint8_t mode);
 uint8_t read_input(uint8_t limit,uint8_t a, uint8_t b);
+uint8_t get_menu_op();
 uint8_t get_move();
 uint8_t get_dice();
 void power_off();
@@ -97,9 +99,8 @@ int main (void){
   PORTB |= (1 << PORTB4);
 
   //read menu option
-  op = read_input(0xf,CHAR_O,CHAR_P); //limit f and "oP" as tag 
+  op = get_menu_op();
   while(1){
-    x++;
     //menu options
     switch(op){
       case 0:
@@ -109,15 +110,11 @@ int main (void){
           hex_add();
         break;
       case 2: //Rock Paper Sissor
-        render(CHAR_P,CHAR_L,CHAR_A,CHAR_Y,0);
-        _delay_ms(500);
         i = get_move();
         j = (random() % 3); //generate numbers in range [0,3)
         print_rps(i,j);
         break;
-      case 3:
-        render(CHAR_D,CHAR_I,CHAR_C,CHAR_E,0);
-        _delay_ms(500);
+      case 3: //Dice roller
         i = get_dice();
         x = roll_random();
         check_dice(i,x);
@@ -132,8 +129,6 @@ int main (void){
         edit_eeprom(0x0100,0x01FF);
         break;
       case 7:
-        render(CHAR_R,CHAR_U,CHAR_N,CHAR_SPC,0);
-        _delay_ms(500);
         run(0x0100,0x01FF);
         break;
       case 8:
@@ -161,6 +156,38 @@ void render(uint8_t a, uint8_t b,  uint8_t c,  uint8_t d, uint8_t p ){
     TM1637_display_segments(1,b|0x80);
   TM1637_display_segments(2,c);
   TM1637_display_segments(3,d);
+}
+
+void print_menu_option(uint8_t op){
+  switch(op){
+    case 0:
+      render(CHAR_SPC,CHAR_O,CHAR_F,CHAR_F,0);
+      break;
+    case 1:
+      render(CHAR_A,CHAR_D,CHAR_D,CHAR_SPC,0);
+      break;
+    case 2:
+      render(CHAR_P,CHAR_L,CHAR_A,CHAR_Y,0);
+      break;
+    case 3:
+      render(CHAR_D,CHAR_I,CHAR_C,CHAR_E,0);
+      break;
+    case 4:
+      render(CHAR_T,CHAR_A,CHAR_L,CHAR_Y,0);
+      break;
+    case 5:
+      render(CHAR_L,CHAR_E,CHAR_D,CHAR_SPC,0);
+      break;
+    case 6:
+      render(CHAR_E,CHAR_D,CHAR_I,CHAR_T,0);
+      break;
+    case 7:
+      render(CHAR_R,CHAR_U,CHAR_N,CHAR_SPC,0);
+      break;
+    case 8:
+      render(CHAR_C,CHAR_L,CHAR_R,CHAR_SPC,0);
+      break;
+  }
 }
 
 void print_rps(uint8_t i, uint8_t j){
@@ -323,6 +350,34 @@ uint8_t read_input(uint8_t limit,uint8_t a, uint8_t b){
   }
 }
 
+uint8_t get_menu_op(){
+  //r:read  pr:previous_r
+  uint8_t r,pr = 0x7;
+  //op:selected_option
+  uint8_t op = 0x00;
+
+  while(1){
+    r = read_button(1); //mode 1, return always 
+    if(r != pr){
+      pr = r;
+      switch (r){
+        case 0:
+          if(op<=0) op=0x8;
+          else op--;
+          break;
+        case 2:
+          if(op>=0xF) op=0x0;
+          else op++;
+          break;
+        case 1:
+          return op;
+      }
+    }
+    print_menu_option(op);
+  }
+}
+
+
 uint8_t get_move(){
   //r:read  pr:previous_r
   uint8_t r,pr = 0x7;
@@ -416,8 +471,6 @@ uint8_t get_dice(){
  */
 
 void power_off(){
-  render(CHAR_SPC,CHAR_O,CHAR_F,CHAR_F,0);
-  _delay_ms(500);
   //disabled screen and set brightness to 0
   TM1637_init(0,0);
   sleep_mode();
@@ -499,8 +552,6 @@ void check_dice(uint8_t dice, uint16_t roll){
 void tally_counter(){
   uint8_t i = 0;
   uint8_t j = 0;
-  render(CHAR_T,CHAR_A,CHAR_L,CHAR_Y,0);
-  _delay_ms(500);
   i = 0;
   while(1){
     render( 
@@ -528,8 +579,6 @@ void tally_counter(){
 void led_settings(){
   uint8_t i = 0;
   uint8_t j = 0;
-  render(CHAR_L,CHAR_E,CHAR_D,CHAR_SPC,0);
-  _delay_ms(500);
   while(1){
     TM1637_init(1,i); //enabled and brightness i
     render(CHAR_L,CHAR_D,number[0],number[i],0);
@@ -563,8 +612,6 @@ void edit_eeprom(uint16_t init, uint16_t end){
   if (end - init > 0xFF){
     return;
   }
-  render(CHAR_E,CHAR_D,CHAR_I,CHAR_T,0);
-  _delay_ms(500);
   while(1){
     k = eeprom_read_byte((uint8_t *)(init + x) );
     render( 
@@ -604,7 +651,7 @@ void run(uint16_t init, uint16_t end){
   uint8_t kp1 = 0;
   uint8_t res = 0;
   uint16_t x = 0;
-  //TODO: Run the code
+
   init_processor();
   while(1){ 
     x = get_next_instruction();
@@ -641,8 +688,6 @@ void run(uint16_t init, uint16_t end){
 void clear_eeprom(uint16_t init, uint16_t end){
   uint8_t r = 0;
   uint16_t i = 0;
-  render(CHAR_C,CHAR_L,CHAR_R,CHAR_SPC,0);
-  _delay_ms(500);
   render(CHAR_5,CHAR_U,CHAR_R,CHAR_E,0);
   //wait until no key is pressed
   while(read_button(1)!=3);
